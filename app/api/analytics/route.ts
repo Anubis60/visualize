@@ -16,16 +16,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch company receipts/payments using Whop SDK
-    const companyReceipts = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany({
+    // Fetch all memberships using Whop SDK
+    const response = await whopSdk.withCompany(companyId).companies.listMemberships({
       companyId,
-      first: 100,
+      first: 10, // Lower limit to avoid complexity issues
     })
 
-    console.log('Whop SDK Receipts Response:', JSON.stringify(companyReceipts, null, 2))
+    console.log('Whop SDK Response:', JSON.stringify(response, null, 2))
 
-    // For now, use empty memberships array since we need to set up proper permissions
-    const memberships: Membership[] = []
+    const memberships = (response?.memberships?.nodes || []) as unknown as Membership[]
 
     console.log('Parsed memberships count:', memberships.length)
 
