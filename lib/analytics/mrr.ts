@@ -35,9 +35,15 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     other: 0,
   }
 
-  const activeMemberships = memberships.filter(
-    m => m.valid && m.status === 'active' && m.plan
-  )
+  const activeMemberships = memberships.filter(m => {
+    // Whop uses "completed" status for active memberships
+    // Active = completed + not cancelled + not expired
+    const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
+    const isActive = m.status === 'completed' &&
+                     m.canceledAt === null &&
+                     (m.expiresAt === null || m.expiresAt > now)
+    return isActive && m.plan
+  })
 
   activeMemberships.forEach(membership => {
     if (!membership.plan) return

@@ -1,30 +1,29 @@
 export interface Membership {
   id: string
-  user_id: string
-  plan_id: string
-  product_id: string
-  status: 'active' | 'cancelled' | 'past_due' | 'trialing'
-  valid: boolean
-  renewal_period_start?: string
-  renewal_period_end?: string
-  created_at: string
-  cancelled_at?: string
+  status: 'completed' | 'canceled' | 'trialing'
+  createdAt: number  // Unix timestamp in seconds
+  canceledAt: number | null
+  expiresAt: number | null
+  cancelationReason: string | null
+  totalSpend: number
   plan?: {
     id: string
-    name: string
-    price: number
-    billing_period: 'month' | 'year' | 'quarter' | 'week' | 'day' | 'lifetime'
-    release_method: string
+    __typename?: string
   }
-  product?: {
+  accessPass?: {
     id: string
-    name: string
+    title: string
+    __typename?: string
   }
-  user?: {
+  member?: {
     id: string
     email: string
     username?: string
-  }
+    name?: string | null
+    __typename?: string
+  } | null
+  promoCode?: any
+  __typename?: string
 }
 
 export interface MRRData {
