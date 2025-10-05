@@ -84,16 +84,15 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Financier</h1>
-          <p className="text-gray-600 mt-1">Whop Analytics Dashboard</p>
-        </div>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">📊 Overview</h1>
+        <p className="text-gray-600 mt-1">Your Whop analytics at a glance</p>
+      </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
             title="Monthly Recurring Revenue"
             value={formatCurrency(analytics.mrr.total)}
@@ -143,26 +142,25 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
           </div>
         </div>
 
-        {/* Subscriber Status */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Subscriber Status</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Active</p>
-              <p className="text-2xl font-bold text-green-600">{analytics.subscribers.active}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Cancelled</p>
-              <p className="text-2xl font-bold text-red-600">{analytics.subscribers.cancelled}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Past Due</p>
-              <p className="text-2xl font-bold text-yellow-600">{analytics.subscribers.past_due}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Trialing</p>
-              <p className="text-2xl font-bold text-blue-600">{analytics.subscribers.trialing}</p>
-            </div>
+      {/* Subscriber Status */}
+      <div className="bg-white rounded-xl shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Subscriber Status</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">Active</p>
+            <p className="text-2xl font-bold text-green-600">{analytics.subscribers.active}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Cancelled</p>
+            <p className="text-2xl font-bold text-red-600">{analytics.subscribers.cancelled}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Past Due</p>
+            <p className="text-2xl font-bold text-yellow-600">{analytics.subscribers.past_due}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Trialing</p>
+            <p className="text-2xl font-bold text-blue-600">{analytics.subscribers.trialing}</p>
           </div>
         </div>
       </div>
