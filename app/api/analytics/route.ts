@@ -22,7 +22,11 @@ export async function GET(request: NextRequest) {
       first: 100,
     })
 
+    console.log('Whop SDK Response:', JSON.stringify(response, null, 2))
+
     const memberships = (response?.memberships?.nodes || []) as unknown as Membership[]
+
+    console.log('Parsed memberships count:', memberships.length)
 
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
