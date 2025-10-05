@@ -27,15 +27,22 @@ interface AnalyticsData {
   activeUniqueSubscribers: number
 }
 
-export default function DashboardPage({ params }: { params: { companyId: string } }) {
+export default function DashboardPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [companyId, setCompanyId] = useState<string | null>(null)
 
   useEffect(() => {
+    params.then(p => setCompanyId(p.companyId))
+  }, [params])
+
+  useEffect(() => {
+    if (!companyId) return
+
     async function fetchAnalytics() {
       try {
-        const response = await fetch(`/api/analytics?company_id=${params.companyId}`)
+        const response = await fetch(`/api/analytics?company_id=${companyId}`)
         if (!response.ok) {
           throw new Error('Failed to fetch analytics')
         }
@@ -49,7 +56,7 @@ export default function DashboardPage({ params }: { params: { companyId: string 
     }
 
     fetchAnalytics()
-  }, [params.companyId])
+  }, [companyId])
 
   if (loading) {
     return (
