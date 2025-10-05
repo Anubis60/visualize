@@ -45,12 +45,18 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     return isActive && m.planData
   })
 
+  console.log('\n=== MRR Calculation ===')
+  console.log(`Total active memberships with plan data: ${activeMemberships.length}`)
+
   activeMemberships.forEach(membership => {
     const planData = membership.planData
     if (!planData) return
 
     // Skip one-time or free plans
-    if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) return
+    if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) {
+      console.log(`Skipping ${planData.title}: ${planData.planType}, $${planData.rawRenewalPrice}`)
+      return
+    }
 
     // Calculate monthly recurring revenue
     const price = planData.rawRenewalPrice // Already in dollars
@@ -58,6 +64,8 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
     // Normalize to monthly (30 days)
     const monthlyRevenue = (price / billingPeriod) * 30
+
+    console.log(`${planData.title}: $${price} / ${billingPeriod} days = $${monthlyRevenue.toFixed(2)}/month`)
 
     // Categorize by billing period
     if (billingPeriod === 30) {
@@ -72,6 +80,14 @@ export function calculateMRR(memberships: Membership[]): MRRData {
   })
 
   const total = breakdown.monthly + breakdown.annual + breakdown.quarterly + breakdown.other
+
+  console.log('\nMRR Breakdown:')
+  console.log(`  Monthly: $${breakdown.monthly.toFixed(2)}`)
+  console.log(`  Annual: $${breakdown.annual.toFixed(2)}`)
+  console.log(`  Quarterly: $${breakdown.quarterly.toFixed(2)}`)
+  console.log(`  Other: $${breakdown.other.toFixed(2)}`)
+  console.log(`  TOTAL MRR: $${total.toFixed(2)}`)
+  console.log('======================\n')
 
   return {
     total,
