@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { whopSdk } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
-import { Membership } from '@/lib/types/analytics'
+import { Membership, Plan } from '@/lib/types/analytics'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,8 +28,6 @@ export async function GET(request: NextRequest) {
         after: cursor,
       })
 
-      console.log('Raw SDK response:', JSON.stringify(response, null, 2))
-
       const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
       allMemberships = [...allMemberships, ...nodes]
 
@@ -40,8 +38,6 @@ export async function GET(request: NextRequest) {
     }
 
     const memberships = allMemberships
-
-    console.log('Total memberships fetched:', memberships.length)
 
     // Fetch ALL plans using Whop SDK with pagination
     let allPlans: unknown[] = []
@@ -55,8 +51,6 @@ export async function GET(request: NextRequest) {
         after: planCursor,
       })
 
-      console.log('Raw Plans SDK response:', JSON.stringify(plansResponse, null, 2))
-
       const planNodes = plansResponse?.plans?.nodes || []
       allPlans = [...allPlans, ...planNodes]
 
@@ -66,13 +60,24 @@ export async function GET(request: NextRequest) {
       if (!hasNextPlanPage) break
     }
 
-    console.log('Total plans fetched:', allPlans.length)
+    // Create a map of planId -> planData for quick lookup
+    const planMap = new Map<string, Plan>()
+    allPlans.forEach((plan: unknown) => {
+      const p = plan as Plan
+      planMap.set(p.id, p)
+    })
 
-    // Calculate metrics
-    const mrrData = calculateMRR(memberships)
+    // Enrich memberships with plan data
+    const enrichedMemberships: Membership[] = memberships.map(m => ({
+      ...m,
+      planData: m.plan ? planMap.get(m.plan.id) : undefined
+    }))
+
+    // Calculate metrics with enriched data
+    const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
-    const subscriberMetrics = calculateSubscriberMetrics(memberships)
-    const activeUniqueSubscribers = getActiveUniqueSubscribers(memberships)
+    const subscriberMetrics = calculateSubscriberMetrics(enrichedMemberships)
+    const activeUniqueSubscribers = getActiveUniqueSubscribers(enrichedMemberships)
     const arpu = calculateARPU(mrrData.total, activeUniqueSubscribers)
 
     return NextResponse.json({

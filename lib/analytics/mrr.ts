@@ -42,16 +42,33 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     const isActive = m.status === 'completed' &&
                      m.canceledAt === null &&
                      (m.expiresAt === null || m.expiresAt > now)
-    return isActive && m.plan
+    return isActive && m.planData
   })
 
-  // Note: Whop SDK only returns plan.id, not price/billing_period
-  // We need to fetch plan details separately to calculate MRR
-  // For now, MRR will be 0 until we implement plan fetching
-
   activeMemberships.forEach(membership => {
-    if (!membership.plan) return
-    // TODO: Fetch plan details and calculate MRR
+    const planData = membership.planData
+    if (!planData) return
+
+    // Skip one-time or free plans
+    if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) return
+
+    // Calculate monthly recurring revenue
+    const price = planData.rawRenewalPrice // Already in dollars
+    const billingPeriod = planData.billingPeriod || 30 // Default to 30 days
+
+    // Normalize to monthly (30 days)
+    const monthlyRevenue = (price / billingPeriod) * 30
+
+    // Categorize by billing period
+    if (billingPeriod === 30) {
+      breakdown.monthly += monthlyRevenue
+    } else if (billingPeriod === 365) {
+      breakdown.annual += monthlyRevenue
+    } else if (billingPeriod === 90) {
+      breakdown.quarterly += monthlyRevenue
+    } else {
+      breakdown.other += monthlyRevenue
+    }
   })
 
   const total = breakdown.monthly + breakdown.annual + breakdown.quarterly + breakdown.other

@@ -1,3 +1,14 @@
+export interface Plan {
+  id: string
+  rawRenewalPrice: number
+  rawInitialPrice: number
+  billingPeriod: number | null // days, or null for one_time
+  planType: 'renewal' | 'one_time'
+  baseCurrency: string
+  title: string
+  __typename?: string
+}
+
 export interface Membership {
   id: string
   status: 'completed' | 'canceled' | 'trialing'
@@ -10,6 +21,8 @@ export interface Membership {
     id: string
     __typename?: string
   }
+  // Enriched plan data (populated after fetching from API)
+  planData?: Plan
   accessPass?: {
     id: string
     title: string
