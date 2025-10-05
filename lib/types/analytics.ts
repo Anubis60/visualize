@@ -22,7 +22,7 @@ export interface Membership {
     name?: string | null
     __typename?: string
   } | null
-  promoCode?: any
+  promoCode?: unknown
   __typename?: string
 }
 
