@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopClient } from '@/lib/whop/client'
+import { whopSdk } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
+import { Membership } from '@/lib/types/analytics'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,8 +16,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all memberships
-    const memberships = await whopClient.getAllMemberships(companyId)
+    // Fetch all memberships using Whop SDK
+    const response = await whopSdk.withCompany(companyId).companies.listMemberships({
+      companyId,
+      first: 100,
+    })
+
+    const memberships = (response?.memberships?.nodes || []) as unknown as Membership[]
 
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
