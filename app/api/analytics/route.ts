@@ -16,17 +16,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all memberships using Whop SDK
-    const response = await whopSdk.withCompany(companyId).companies.listMemberships({
-      companyId,
-      first: 10, // Lower limit to avoid complexity issues
-    })
+    // Fetch ALL memberships using Whop SDK with pagination
+    let allMemberships: Membership[] = []
+    let hasNextPage = true
+    let cursor: string | undefined = undefined
 
-    console.log('Whop SDK Response:', JSON.stringify(response, null, 2))
+    while (hasNextPage) {
+      const response = await whopSdk.withCompany(companyId).companies.listMemberships({
+        companyId,
+        first: 50, // Fetch 50 at a time to avoid complexity issues
+        after: cursor,
+      })
 
-    const memberships = (response?.memberships?.nodes || []) as unknown as Membership[]
+      const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
+      allMemberships = [...allMemberships, ...nodes]
 
-    console.log('Parsed memberships count:', memberships.length)
+      hasNextPage = response?.memberships?.pageInfo?.hasNextPage || false
+      cursor = response?.memberships?.pageInfo?.endCursor ?? undefined
+
+      if (!hasNextPage) break
+    }
+
+    const memberships = allMemberships
+
+    console.log('Total memberships fetched:', memberships.length)
 
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
