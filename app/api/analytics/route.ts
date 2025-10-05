@@ -43,6 +43,31 @@ export async function GET(request: NextRequest) {
 
     console.log('Total memberships fetched:', memberships.length)
 
+    // Fetch ALL plans using Whop SDK with pagination
+    let allPlans: unknown[] = []
+    let hasNextPlanPage = true
+    let planCursor: string | undefined = undefined
+
+    while (hasNextPlanPage) {
+      const plansResponse = await whopSdk.withCompany(companyId).companies.listPlans({
+        companyId,
+        first: 50,
+        after: planCursor,
+      })
+
+      console.log('Raw Plans SDK response:', JSON.stringify(plansResponse, null, 2))
+
+      const planNodes = plansResponse?.plans?.nodes || []
+      allPlans = [...allPlans, ...planNodes]
+
+      hasNextPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
+      planCursor = plansResponse?.plans?.pageInfo?.endCursor ?? undefined
+
+      if (!hasNextPlanPage) break
+    }
+
+    console.log('Total plans fetched:', allPlans.length)
+
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
     const arr = calculateARR(mrrData.total)
