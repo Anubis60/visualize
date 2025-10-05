@@ -1,15 +1,12 @@
 import { WhopServerSdk } from "@whop/api";
 
 export const whopSdk = WhopServerSdk({
-  // App ID from environment
+  // Add your app id here - this is required.
   appId: process.env.NEXT_PUBLIC_WHOP_APP_ID ?? "",
 
-  // App API key from environment
+  // Add your app api key here - this is required.
   appApiKey: process.env.WHOP_API_KEY ?? "",
 
-  // Agent user ID for making requests on behalf of
-  onBehalfOfUserId: process.env.NEXT_PUBLIC_WHOP_AGENT_USER_ID,
-
-  // Default company ID
-  companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID,
+  // DO NOT add companyId or onBehalfOfUserId for dashboard apps
+  // These will be set dynamically per request
 });
