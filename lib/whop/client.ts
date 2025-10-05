@@ -2,6 +2,18 @@ import { Membership } from '@/lib/types/analytics'
 
 const WHOP_API_BASE = 'https://api.whop.com/api/v2'
 
+interface WhopPagination {
+  current_page: number
+  total_pages: number
+  total_count: number
+  per_page: number
+}
+
+interface WhopMembershipsResponse {
+  data: Membership[]
+  pagination: WhopPagination
+}
+
 export class WhopClient {
   private apiKey: string
 
@@ -32,7 +44,7 @@ export class WhopClient {
     valid?: boolean
     page?: number
     per?: number
-  }): Promise<{ data: Membership[], pagination: any }> {
+  }): Promise<{ data: Membership[], pagination: WhopPagination }> {
     const searchParams = new URLSearchParams()
 
     if (params?.company_id) searchParams.set('company_id', params.company_id)
@@ -46,13 +58,13 @@ export class WhopClient {
     searchParams.append('expand[]', 'product')
     searchParams.append('expand[]', 'user')
 
-    const result = await this.fetch<any>(
+    const result = await this.fetch<WhopMembershipsResponse>(
       `/memberships?${searchParams.toString()}`
     )
 
     return {
       data: result.data || [],
-      pagination: result.pagination || {}
+      pagination: result.pagination || { current_page: 1, total_pages: 1, total_count: 0, per_page: 10 }
     }
   }
 
