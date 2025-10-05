@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     const memberships = allMemberships
 
     console.log('Total memberships fetched:', memberships.length)
+    console.log('Sample membership:', JSON.stringify(memberships[0], null, 2))
 
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
