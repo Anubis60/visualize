@@ -45,27 +45,13 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     return isActive && m.plan
   })
 
+  // Note: Whop SDK only returns plan.id, not price/billing_period
+  // We need to fetch plan details separately to calculate MRR
+  // For now, MRR will be 0 until we implement plan fetching
+
   activeMemberships.forEach(membership => {
     if (!membership.plan) return
-
-    const monthlyValue = normalizePriceToMonthly(
-      membership.plan.price,
-      membership.plan.billing_period
-    )
-
-    switch (membership.plan.billing_period) {
-      case 'month':
-        breakdown.monthly += monthlyValue
-        break
-      case 'year':
-        breakdown.annual += monthlyValue
-        break
-      case 'quarter':
-        breakdown.quarterly += monthlyValue
-        break
-      default:
-        breakdown.other += monthlyValue
-    }
+    // TODO: Fetch plan details and calculate MRR
   })
 
   const total = breakdown.monthly + breakdown.annual + breakdown.quarterly + breakdown.other
