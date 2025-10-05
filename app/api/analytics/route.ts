@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
         after: cursor,
       })
 
+      console.log('Raw SDK response:', JSON.stringify(response, null, 2))
+
       const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
       allMemberships = [...allMemberships, ...nodes]
 
@@ -40,7 +42,6 @@ export async function GET(request: NextRequest) {
     const memberships = allMemberships
 
     console.log('Total memberships fetched:', memberships.length)
-    console.log('Sample membership:', JSON.stringify(memberships[0], null, 2))
 
     // Calculate metrics
     const mrrData = calculateMRR(memberships)
