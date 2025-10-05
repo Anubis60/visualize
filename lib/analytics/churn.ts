@@ -1,5 +1,4 @@
 import { Membership, ChurnMetrics } from '@/lib/types/analytics'
-import { normalizePriceToMonthly } from './mrr'
 
 /**
  * Calculates churn metrics for a given period
@@ -8,19 +7,25 @@ export function calculateChurnMetrics(
   currentMemberships: Membership[],
   previousMemberships: Membership[]
 ): ChurnMetrics {
+  const now = Date.now() / 1000
+
+  // Helper to check if membership is active
+  const isActive = (m: Membership) =>
+    m.status === 'completed' &&
+    m.canceledAt === null &&
+    (m.expiresAt === null || m.expiresAt > now)
+
   // Get churned users (in previous period but not in current)
   const currentUserIds = new Set(
     currentMemberships
-      .filter(m => m.status === 'active' && m.valid)
-      .map(m => m.user_id)
+      .filter(m => isActive(m) && m.member)
+      .map(m => m.member!.id)
   )
 
-  const previousActiveUsers = previousMemberships.filter(
-    m => m.status === 'active' && m.valid
-  )
+  const previousActiveUsers = previousMemberships.filter(m => isActive(m) && m.member)
 
   const churnedUsers = previousActiveUsers.filter(
-    m => !currentUserIds.has(m.user_id)
+    m => !currentUserIds.has(m.member!.id)
   )
 
   // Calculate customer churn rate
@@ -29,33 +34,9 @@ export function calculateChurnMetrics(
     ? (churnedUsers.length / previousActiveCount) * 100
     : 0
 
-  // Calculate revenue churn
-  const previousMRR = previousActiveUsers.reduce((sum, m) => {
-    if (!m.plan) return sum
-    return sum + normalizePriceToMonthly(m.plan.price, m.plan.billing_period)
-  }, 0)
-
-  const churnedMRR = churnedUsers.reduce((sum, m) => {
-    if (!m.plan) return sum
-    return sum + normalizePriceToMonthly(m.plan.price, m.plan.billing_period)
-  }, 0)
-
-  const revenueChurnRate = previousMRR > 0
-    ? (churnedMRR / previousMRR) * 100
-    : 0
-
-  // Calculate current MRR for net revenue retention
-  const currentMRR = currentMemberships
-    .filter(m => m.status === 'active' && m.valid)
-    .reduce((sum, m) => {
-      if (!m.plan) return sum
-      return sum + normalizePriceToMonthly(m.plan.price, m.plan.billing_period)
-    }, 0)
-
-  // Net Revenue Retention = ((Starting MRR + Expansion - Contraction - Churn) / Starting MRR) × 100
-  const netRevenueRetention = previousMRR > 0
-    ? (currentMRR / previousMRR) * 100
-    : 100
+  // Note: Revenue churn requires plan price data which we don't have yet
+  const revenueChurnRate = 0
+  const netRevenueRetention = 100
 
   return {
     customerChurnRate,
