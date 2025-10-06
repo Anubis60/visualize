@@ -123,8 +123,8 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
             <span className="font-semibold">Reactivation:</span> MRR from previously churned customers who return
           </div>
           <div className="mt-4 pt-4 border-t border-purple-200">
-            <span className="font-semibold">Note:</span> This chart groups each customer's MRR movements into a single net movement,
-            showing the combined impact across all of a customer's subscriptions rather than individual subscription changes.
+            <span className="font-semibold">Note:</span> This chart groups each customer&apos;s MRR movements into a single net movement,
+            showing the combined impact across all of a customer&apos;s subscriptions rather than individual subscription changes.
           </div>
         </div>
       </div>
