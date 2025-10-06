@@ -13,11 +13,9 @@ interface AnalyticsData {
 export default function ARRPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string>('')
 
   useEffect(() => {
     params.then((p) => {
-      setCompanyId(p.companyId)
       fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
         .then(data => {
@@ -103,11 +101,11 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
       <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
         <h3 className="font-semibold text-green-900 mb-2">About ARR</h3>
         <p className="text-green-800 text-sm mb-4">
-          Annual Run Rate (ARR) represents the annualized value of your recurring revenue. It's calculated by multiplying your
+          Annual Run Rate (ARR) represents the annualized value of your recurring revenue. It&apos;s calculated by multiplying your
           current Monthly Recurring Revenue (MRR) by 12.
         </p>
         <p className="text-green-800 text-sm">
-          ARR is a forward-looking metric that assumes your current MRR remains constant for the next 12 months. It's commonly
+          ARR is a forward-looking metric that assumes your current MRR remains constant for the next 12 months. It&apos;s commonly
           used for financial planning and investor reporting.
         </p>
       </div>

@@ -5,12 +5,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { TrendingDown } from 'lucide-react'
 
 export default function ChurnPage({ params }: { params: Promise<{ companyId: string }> }) {
-  const [companyId, setCompanyId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    params.then(p => {
-      setCompanyId(p.companyId)
+    params.then(() => {
       setLoading(false)
     })
   }, [params])

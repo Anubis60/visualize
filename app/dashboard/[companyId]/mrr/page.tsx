@@ -18,11 +18,9 @@ interface AnalyticsData {
 export default function MRRPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [companyId, setCompanyId] = useState<string>('')
 
   useEffect(() => {
     params.then((p) => {
-      setCompanyId(p.companyId)
       fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
         .then(data => {
