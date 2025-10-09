@@ -41,7 +41,7 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
     const isActive = (m.status === 'active' || m.status === 'completed') &&
                      m.canceled_at === null &&
-                     (m.renewal_period_end === null || m.renewal_period_end > now)
+                     (!m.renewal_period_end || m.renewal_period_end > now)
     return isActive && m.planData
   })
 

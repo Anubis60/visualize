@@ -13,7 +13,7 @@ export function calculateChurnMetrics(
   const isActive = (m: Membership) =>
     (m.status === 'active' || m.status === 'completed') &&
     m.canceled_at === null &&
-    (m.renewal_period_end === null || m.renewal_period_end > now)
+    (!m.renewal_period_end || m.renewal_period_end > now)
 
   // Get churned users (in previous period but not in current)
   const currentUserIds = new Set(
