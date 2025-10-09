@@ -15,8 +15,19 @@ export async function GET(request: NextRequest) {
 
     console.log('\n💳 Fetching all transactions for company:', companyId)
 
+    interface Receipt {
+      status?: string
+      friendlyStatus?: string
+      currency?: string
+      paymentProcessor?: string
+      finalAmount?: number
+      settledUsdAmount?: number
+      refundedAmount?: number
+      [key: string]: unknown
+    }
+
     // Fetch ALL receipts/transactions using pagination
-    let allReceipts: any[] = []
+    let allReceipts: Receipt[] = []
     let hasNextPage = true
     let cursor: string | undefined = undefined
 
@@ -50,20 +61,24 @@ export async function GET(request: NextRequest) {
     // Log summary stats
     const stats = {
       total: allReceipts.length,
-      byStatus: allReceipts.reduce((acc: any, r) => {
-        acc[r.status] = (acc[r.status] || 0) + 1
+      byStatus: allReceipts.reduce((acc: Record<string, number>, r) => {
+        const status = r.status || 'unknown'
+        acc[status] = (acc[status] || 0) + 1
         return acc
       }, {}),
-      byFriendlyStatus: allReceipts.reduce((acc: any, r) => {
-        acc[r.friendlyStatus] = (acc[r.friendlyStatus] || 0) + 1
+      byFriendlyStatus: allReceipts.reduce((acc: Record<string, number>, r) => {
+        const friendlyStatus = r.friendlyStatus || 'unknown'
+        acc[friendlyStatus] = (acc[friendlyStatus] || 0) + 1
         return acc
       }, {}),
-      byCurrency: allReceipts.reduce((acc: any, r) => {
-        acc[r.currency] = (acc[r.currency] || 0) + 1
+      byCurrency: allReceipts.reduce((acc: Record<string, number>, r) => {
+        const currency = r.currency || 'unknown'
+        acc[currency] = (acc[currency] || 0) + 1
         return acc
       }, {}),
-      byPaymentProcessor: allReceipts.reduce((acc: any, r) => {
-        acc[r.paymentProcessor] = (acc[r.paymentProcessor] || 0) + 1
+      byPaymentProcessor: allReceipts.reduce((acc: Record<string, number>, r) => {
+        const processor = r.paymentProcessor || 'unknown'
+        acc[processor] = (acc[processor] || 0) + 1
         return acc
       }, {}),
       totalRevenue: allReceipts.reduce((sum, r) => sum + (r.finalAmount || 0), 0),
