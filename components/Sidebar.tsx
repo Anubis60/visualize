@@ -6,17 +6,41 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
+import { useEffect, useState } from 'react'
+import { whopSdk } from '@/lib/whop-sdk'
 
 interface SidebarProps {
   companyId: string
+}
+
+interface CompanyData {
+  title: string
+  logo?: { sourceUrl: string }
+  bannerImage?: { sourceUrl: string }
 }
 
 export function Sidebar({ companyId }: SidebarProps) {
   const pathname = usePathname()
   const collapsed = useSidebarStore(state => state.collapsed)
   const setCollapsed = useSidebarStore(state => state.setCollapsed)
+  const [company, setCompany] = useState<CompanyData | null>(null)
+
+  useEffect(() => {
+    const fetchCompany = async () => {
+      try {
+        const result = await whopSdk.companies.getCompany({ companyId })
+        setCompany(result)
+      } catch (error) {
+        console.error('Failed to fetch company data:', error)
+      }
+    }
+    fetchCompany()
+  }, [companyId])
 
   const isActive = (path: string) => pathname === path
+
+  // Use banner image if available, otherwise fallback to logo
+  const companyImageUrl = company?.bannerImage?.sourceUrl || company?.logo?.sourceUrl
 
   return (
     <aside className={cn(
@@ -25,16 +49,36 @@ export function Sidebar({ companyId }: SidebarProps) {
     )}>
       {/* Header */}
       <div className={cn(
-        "border-b border-slate-800 flex items-center justify-center",
+        "border-b border-slate-800 flex flex-col items-center justify-center",
         collapsed ? "p-3" : "p-4"
       )}>
-        <Image
-          src="/images/tie logo transparent.png"
-          alt="Financier Logo"
-          width={collapsed ? 32 : 48}
-          height={collapsed ? 32 : 48}
-          className="object-contain"
-        />
+        {companyImageUrl ? (
+          <>
+            <div className={cn(
+              "relative overflow-hidden rounded-lg",
+              collapsed ? "w-10 h-10" : "w-full h-24"
+            )}>
+              <Image
+                src={companyImageUrl}
+                alt={company?.title || "Company"}
+                fill
+                className="object-cover"
+              />
+            </div>
+            {!collapsed && company?.title && (
+              <h2 className="mt-2 text-sm font-semibold text-center text-white truncate w-full px-2">
+                {company.title}
+              </h2>
+            )}
+          </>
+        ) : (
+          <div className={cn(
+            "bg-slate-800 rounded-lg flex items-center justify-center",
+            collapsed ? "w-10 h-10" : "w-full h-24"
+          )}>
+            <span className="text-slate-400 text-xs">Loading...</span>
+          </div>
+        )}
       </div>
 
       {/* Toggle Button */}
