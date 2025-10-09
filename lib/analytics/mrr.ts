@@ -35,10 +35,19 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     other: 0,
   }
 
+  // Debug: Check membership statuses
+  const statusCounts: Record<string, number> = {}
+  memberships.forEach(m => {
+    statusCounts[m.status] = (statusCounts[m.status] || 0) + 1
+  })
+  console.log('\n=== Membership Status Distribution ===')
+  console.log(JSON.stringify(statusCounts, null, 2))
+
+  const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
+
   const activeMemberships = memberships.filter(m => {
     // Active memberships are those with status 'active' or 'completed'
     // that haven't been canceled or are still within their renewal period
-    const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
     const isActive = (m.status === 'active' || m.status === 'completed') &&
                      m.canceled_at === null &&
                      (!m.renewal_period_end || m.renewal_period_end > now)
@@ -47,6 +56,16 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
   console.log('\n=== MRR Calculation ===')
   console.log(`Total active memberships with plan data: ${activeMemberships.length}`)
+
+  // Debug: Sample a few memberships to see their structure
+  if (activeMemberships.length === 0 && memberships.length > 0) {
+    console.log('\n⚠️ No active memberships found. Sample membership:')
+    const sample = memberships[0]
+    console.log(`  Status: ${sample.status}`)
+    console.log(`  Canceled at: ${sample.canceled_at}`)
+    console.log(`  Renewal period end: ${sample.renewal_period_end}`)
+    console.log(`  Has plan data: ${!!sample.planData}`)
+  }
 
   activeMemberships.forEach(membership => {
     const planData = membership.planData

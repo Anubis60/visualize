@@ -78,6 +78,12 @@ export async function GET(request: NextRequest) {
     console.log(`  Total plans fetched: ${allPlans.length}`)
     console.log(`  Memberships with plan data: ${enrichedMemberships.filter(m => m.planData).length}`)
 
+    // Debug: Show raw sample data
+    console.log('\n🔍 Sample Membership (raw):')
+    console.log(JSON.stringify(memberships[0], null, 2))
+    console.log('\n🔍 Sample Plan (raw):')
+    console.log(JSON.stringify(allPlans[0], null, 2))
+
     // Calculate metrics with enriched data
     const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
