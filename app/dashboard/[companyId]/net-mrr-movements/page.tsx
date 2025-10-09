@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { ChartControls, ChartType, TimePeriod } from '@/components/charts/ChartControls'
 
 interface AnalyticsData {
   mrr: {
@@ -13,6 +14,13 @@ interface AnalyticsData {
 export default function NetMRRMovementsPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [chartType, setChartType] = useState<ChartType>('bar')
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('month')
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(new Date().setMonth(new Date().getMonth() - 6)),
+    to: new Date(),
+  })
 
   useEffect(() => {
     params.then((p) => {
@@ -36,6 +44,13 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
   if (!analytics) {
     return <div className="p-8">Failed to load analytics data</div>
   }
+
+  // TODO: Fetch actual plans list from API
+  const plans = [
+    { id: 'plan1', name: 'Basic Plan' },
+    { id: 'plan2', name: 'Pro Plan' },
+    { id: 'plan3', name: 'Enterprise Plan' },
+  ]
 
   // Mock MRR movements data - in production, track actual subscription changes
   const movementsData = [
@@ -86,6 +101,19 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
       {/* Net MRR Movements Chart */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Monthly Net MRR Movements</h2>
+
+        <ChartControls
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          plans={plans}
+          selectedPlan={selectedPlan}
+          onPlanChange={setSelectedPlan}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+        />
+
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={movementsData}>
             <CartesianGrid strokeDasharray="3 3" />

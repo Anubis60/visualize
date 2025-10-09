@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { ChartControls } from '@/components/charts/ChartControls'
+import { MetricsChart } from '@/components/charts/MetricsChart'
+import { useChartData } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
   arr: number
@@ -27,10 +29,10 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
     params.then((p) => {
       console.log('🔍 ARR Page: Fetching analytics for company:', p.companyId)
 
-      // Fetch current and historical analytics
+      // Fetch current analytics and up to 1 year of historical data
       Promise.all([
         fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=90`).then(res => res.json())
+        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
         .then(([currentData, historicalResponse]) => {
           console.log('📊 ARR Page: Received current data:', currentData)
@@ -46,6 +48,19 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
     })
   }, [params])
 
+  // Chart data management
+  const {
+    chartType,
+    setChartType,
+    selectedPlan,
+    setSelectedPlan,
+    timePeriod,
+    setTimePeriod,
+    dateRange,
+    setDateRange,
+    chartData,
+  } = useChartData(historicalData, 'arr')
+
   if (loading) {
     return <div className="p-8">Loading...</div>
   }
@@ -54,19 +69,12 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
     return <div className="p-8">Failed to load analytics data</div>
   }
 
-  // Format historical data for the chart
-  const chartData = historicalData.map(item => ({
-    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    arr: item.arr,
-  }))
-
-  // If no historical data, show current value only
-  if (chartData.length === 0) {
-    chartData.push({
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      arr: analytics.arr,
-    })
-  }
+  // TODO: Fetch actual plans list from API
+  const plans = [
+    { id: 'plan1', name: 'Basic Plan' },
+    { id: 'plan2', name: 'Pro Plan' },
+    { id: 'plan3', name: 'Enterprise Plan' },
+  ]
 
   return (
     <div className="p-8">
@@ -100,33 +108,26 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
 
       {/* ARR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">ARR Growth Trend (Last 90 Days)</h2>
-        {chartData.length > 1 ? (
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => `$${value.toFixed(2)}`}
-              />
-              <Legend />
-              <Bar
-                dataKey="arr"
-                fill="#10b981"
-                name="ARR"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <p className="text-lg mb-2">No historical data yet</p>
-              <p className="text-sm">Check back tomorrow to see your ARR trend</p>
-            </div>
-          </div>
-        )}
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">ARR Growth Trend</h2>
+
+        <ChartControls
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          plans={plans}
+          selectedPlan={selectedPlan}
+          onPlanChange={setSelectedPlan}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+        />
+
+        <MetricsChart
+          data={chartData}
+          chartType={chartType}
+          color="#10b981"
+          label="ARR"
+        />
       </div>
 
       {/* Info Panel */}
