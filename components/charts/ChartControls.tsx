@@ -71,34 +71,19 @@ export function ChartControls({
 
       {/* Right: Plan Filter and Time Period Selector */}
       <div className="flex items-center gap-3">
-        {/* Plan Filter */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => onPlanChange(null)}
-            className={cn(
-              'px-3 py-1 text-sm rounded-md transition-colors',
-              selectedPlan === null
-                ? 'bg-white shadow-sm text-gray-900 font-medium'
-                : 'text-gray-600 hover:text-gray-900'
-            )}
-          >
-            All Plans
-          </button>
+        {/* Plan Filter Dropdown */}
+        <select
+          value={selectedPlan || 'all'}
+          onChange={(e) => onPlanChange(e.target.value === 'all' ? null : e.target.value)}
+          className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300"
+        >
+          <option value="all">All Plans</option>
           {plans.map((plan) => (
-            <button
-              key={plan.id}
-              onClick={() => onPlanChange(plan.id)}
-              className={cn(
-                'px-3 py-1 text-sm rounded-md transition-colors',
-                selectedPlan === plan.id
-                  ? 'bg-white shadow-sm text-gray-900 font-medium'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
+            <option key={plan.id} value={plan.id}>
               {plan.name}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
 
         {/* Time Period Selector */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
