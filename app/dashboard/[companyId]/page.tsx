@@ -49,6 +49,20 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         console.log('💰 MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
         console.log('👥 Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
+
+        // Fetch transactions in background (don't wait for it)
+        console.log('🔄 Starting transactions fetch...')
+        fetch(`/api/transactions?company_id=${companyId}`)
+          .then(res => {
+            console.log('📡 Transactions response status:', res.status)
+            return res.json()
+          })
+          .then(transactionData => {
+            console.log('✅ Transactions fetched successfully:', transactionData.total, 'receipts')
+          })
+          .catch(err => {
+            console.error('❌ Error fetching transactions:', err)
+          })
       } catch (err) {
         console.error('❌ Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { whopSdk } from '@/lib/whop/sdk'
 
+// Increase timeout to 5 minutes for large transaction lists
+export const maxDuration = 300
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -30,8 +33,20 @@ export async function GET(request: NextRequest) {
         })
       } catch (sdkError) {
         console.error('\n❌ SDK Error Details:')
-        console.error(JSON.stringify(sdkError, null, 2))
-        throw new Error(`Failed to fetch receipts: ${sdkError instanceof Error ? sdkError.message : 'Unknown SDK error'}`)
+        console.error('Error type:', typeof sdkError)
+        console.error('Error:', sdkError)
+        if (sdkError && typeof sdkError === 'object') {
+          console.error('Error keys:', Object.keys(sdkError))
+          console.error('Error JSON:', JSON.stringify(sdkError, null, 2))
+        }
+
+        // Check if it's a permissions error
+        const errorMsg = JSON.stringify(sdkError)
+        if (errorMsg.includes('500') || errorMsg.includes('Internal Server Error')) {
+          throw new Error('Whop API returned 500 error. This is likely a permissions issue. Make sure your Whop app has the "payment:basic:read" permission enabled.')
+        }
+
+        throw new Error(`Failed to fetch receipts: ${sdkError instanceof Error ? sdkError.message : JSON.stringify(sdkError)}`)
       }
 
       // Log raw SDK response
