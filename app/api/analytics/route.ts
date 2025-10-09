@@ -73,12 +73,24 @@ export async function GET(request: NextRequest) {
       planData: m.plan ? planMap.get(m.plan.id) : undefined
     }))
 
+    console.log(`\n📊 Analytics API Summary:`)
+    console.log(`  Total memberships fetched: ${memberships.length}`)
+    console.log(`  Total plans fetched: ${allPlans.length}`)
+    console.log(`  Memberships with plan data: ${enrichedMemberships.filter(m => m.planData).length}`)
+
     // Calculate metrics with enriched data
     const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
     const subscriberMetrics = calculateSubscriberMetrics(enrichedMemberships)
     const activeUniqueSubscribers = getActiveUniqueSubscribers(enrichedMemberships)
     const arpu = calculateARPU(mrrData.total, activeUniqueSubscribers)
+
+    console.log(`\n💰 Final Metrics:`)
+    console.log(`  MRR: $${mrrData.total.toFixed(2)}`)
+    console.log(`  ARR: $${arr.toFixed(2)}`)
+    console.log(`  ARPU: $${arpu.toFixed(2)}`)
+    console.log(`  Active Unique Subscribers: ${activeUniqueSubscribers}`)
+    console.log(`  Active Memberships: ${subscriberMetrics.active}\n`)
 
     return NextResponse.json({
       mrr: {

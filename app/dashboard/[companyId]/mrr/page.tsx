@@ -21,14 +21,21 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
 
   useEffect(() => {
     params.then((p) => {
+      console.log('🔍 MRR Page: Fetching analytics for company:', p.companyId)
       fetch(`/api/analytics?company_id=${p.companyId}`)
-        .then(res => res.json())
+        .then(res => {
+          console.log('📡 MRR Page: Response status:', res.status)
+          return res.json()
+        })
         .then(data => {
+          console.log('📊 MRR Page: Received data:', data)
+          console.log('💰 Total MRR:', data.mrr?.total)
+          console.log('📋 MRR Breakdown:', data.mrr?.breakdown)
           setAnalytics(data)
           setLoading(false)
         })
         .catch(err => {
-          console.error('Failed to fetch analytics:', err)
+          console.error('❌ MRR Page: Failed to fetch analytics:', err)
           setLoading(false)
         })
     })

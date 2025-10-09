@@ -42,13 +42,19 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
 
     async function fetchAnalytics() {
       try {
+        console.log('🔍 Dashboard: Fetching analytics for company:', companyId)
         const response = await fetch(`/api/analytics?company_id=${companyId}`)
+        console.log('📡 Dashboard: Response status:', response.status)
         if (!response.ok) {
           throw new Error('Failed to fetch analytics')
         }
         const data = await response.json()
+        console.log('📊 Dashboard: Received data:', data)
+        console.log('💰 MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
+        console.log('👥 Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
       } catch (err) {
+        console.error('❌ Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)

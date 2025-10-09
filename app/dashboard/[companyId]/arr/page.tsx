@@ -16,14 +16,21 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
 
   useEffect(() => {
     params.then((p) => {
+      console.log('🔍 ARR Page: Fetching analytics for company:', p.companyId)
       fetch(`/api/analytics?company_id=${p.companyId}`)
-        .then(res => res.json())
+        .then(res => {
+          console.log('📡 ARR Page: Response status:', res.status)
+          return res.json()
+        })
         .then(data => {
+          console.log('📊 ARR Page: Received data:', data)
+          console.log('💰 Total ARR:', data.arr)
+          console.log('💵 Total MRR:', data.mrr?.total)
           setAnalytics(data)
           setLoading(false)
         })
         .catch(err => {
-          console.error('Failed to fetch analytics:', err)
+          console.error('❌ ARR Page: Failed to fetch analytics:', err)
           setLoading(false)
         })
     })
