@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     const memberships = allMemberships
 
     // Fetch ALL plans using Whop SDK with pagination
-    let allPlans: unknown[] = []
+    let allPlans: Plan[] = []
     let hasNextPlanPage = true
     let planCursor: string | undefined = undefined
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         after: planCursor,
       })
 
-      const planNodes = plansResponse?.plans?.nodes || []
+      const planNodes = (plansResponse?.plans?.nodes || []) as Plan[]
       allPlans = [...allPlans, ...planNodes]
 
       hasNextPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
@@ -63,9 +63,8 @@ export async function GET(request: NextRequest) {
 
     // Create a map of planId -> planData for quick lookup
     const planMap = new Map<string, Plan>()
-    allPlans.forEach((plan: unknown) => {
-      const p = plan as Plan
-      planMap.set(p.id, p)
+    allPlans.forEach((plan) => {
+      planMap.set(plan.id, plan)
     })
 
     // Enrich memberships with plan data
@@ -101,8 +100,8 @@ export async function GET(request: NextRequest) {
 
     // Extract unique plans with their access pass titles
     const uniquePlans = allPlans
-      .filter((plan: Plan) => plan.accessPass?.title)
-      .reduce((acc, plan: Plan) => {
+      .filter(plan => plan.accessPass?.title)
+      .reduce((acc, plan) => {
         const existing = acc.find(p => p.id === plan.id)
         if (!existing) {
           acc.push({
