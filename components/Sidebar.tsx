@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 import { useEffect, useState } from 'react'
-import { whopSdk } from '@/lib/whop-sdk'
+import { whopSdk } from '@/lib/whop/sdk'
 
 interface SidebarProps {
   companyId: string
@@ -15,8 +15,8 @@ interface SidebarProps {
 
 interface CompanyData {
   title: string
-  logo?: { sourceUrl: string }
-  bannerImage?: { sourceUrl: string }
+  logo?: { sourceUrl?: string | null } | null
+  bannerImage?: { sourceUrl?: string | null } | null
 }
 
 export function Sidebar({ companyId }: SidebarProps) {
