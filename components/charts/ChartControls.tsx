@@ -76,68 +76,22 @@ export function ChartControls({
         </Button>
       </div>
 
-      {/* Right: Filters and Controls */}
-      <div className="flex items-center gap-3">
-        {/* Plan Filter */}
-        <Select value={selectedPlan || 'all'} onValueChange={(value) => onPlanChange(value === 'all' ? null : value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Plans" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Plans</SelectItem>
-            {plans.map((plan) => (
-              <SelectItem key={plan.id} value={plan.id}>
-                {plan.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Date Range Picker */}
-        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              {format(dateRange.from, 'MMM d, yyyy')} - {format(dateRange.to, 'MMM d, yyyy')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="range"
-              selected={{ from: dateRange.from, to: dateRange.to }}
-              onSelect={(range) => {
-                if (range?.from && range?.to) {
-                  onDateRangeChange({ from: range.from, to: range.to })
-                  setIsDatePickerOpen(false)
-                }
-              }}
-              numberOfMonths={2}
-              disabled={(date) => {
-                const oneYearAgo = new Date()
-                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-                return date > new Date() || date < oneYearAgo
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-
-        {/* Time Period Selector */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          {timePeriods.map((period) => (
-            <button
-              key={period.value}
-              onClick={() => onTimePeriodChange(period.value)}
-              className={cn(
-                'px-3 py-1 text-sm rounded-md transition-colors',
-                timePeriod === period.value
-                  ? 'bg-white shadow-sm text-gray-900 font-medium'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
-              {period.label}
-            </button>
-          ))}
-        </div>
+      {/* Right: Time Period Selector */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        {timePeriods.map((period) => (
+          <button
+            key={period.value}
+            onClick={() => onTimePeriodChange(period.value)}
+            className={cn(
+              'px-3 py-1 text-sm rounded-md transition-colors',
+              timePeriod === period.value
+                ? 'bg-white shadow-sm text-gray-900 font-medium'
+                : 'text-gray-600 hover:text-gray-900'
+            )}
+          >
+            {period.label}
+          </button>
+        ))}
       </div>
     </div>
   )

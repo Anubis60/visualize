@@ -117,6 +117,24 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
         </div>
       </div>
 
+      {/* Chart Filters */}
+      <div className="flex items-center gap-3 mb-4">
+        <select
+          value={selectedPlan || 'all'}
+          onChange={(e) => setSelectedPlan(e.target.value === 'all' ? null : e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+        >
+          <option value="all">All Plans</option>
+          {plans.map((plan) => (
+            <option key={plan.id} value={plan.id}>{plan.name}</option>
+          ))}
+        </select>
+
+        <span className="text-sm text-gray-600">
+          {dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </span>
+      </div>
+
       {/* MRR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <ChartControls
