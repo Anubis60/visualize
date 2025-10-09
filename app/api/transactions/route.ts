@@ -4,7 +4,14 @@ import { whopSdk } from '@/lib/whop/sdk'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const companyId = searchParams.get('company_id') || process.env.NEXT_PUBLIC_WHOP_COMPANY_ID
+    const companyIdFromParams = searchParams.get('company_id')
+    const companyIdFromEnv = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID
+    const companyId = companyIdFromParams || companyIdFromEnv
+
+    console.log('\n💳 Transaction API Request:')
+    console.log('  - company_id from params:', companyIdFromParams)
+    console.log('  - company_id from env:', companyIdFromEnv)
+    console.log('  - Using company_id:', companyId)
 
     if (!companyId) {
       return NextResponse.json(
