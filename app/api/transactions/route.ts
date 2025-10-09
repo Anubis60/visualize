@@ -28,15 +28,26 @@ export async function GET(request: NextRequest) {
       try {
         console.log(`🔄 Fetching page with cursor: ${cursor || 'initial'}`)
 
-        // Try both with and without filter to see which works
-        const requestParams = {
+        // Calculate timestamp for 1 year ago
+        const oneYearAgo = Math.floor(Date.now() / 1000) - (365 * 24 * 60 * 60)
+
+        const requestParams: {
+          companyId: string
+          first: number
+          after?: string
+          filter?: {
+            startDate: number
+          }
+        } = {
           companyId,
           first: 50,
-          ...(cursor && { after: cursor }),
           filter: {
-            // Don't filter by status - get all receipts
-            statuses: undefined,
+            startDate: oneYearAgo,
           }
+        }
+
+        if (cursor) {
+          requestParams.after = cursor
         }
 
         console.log('📝 Request params:', JSON.stringify(requestParams, null, 2))
