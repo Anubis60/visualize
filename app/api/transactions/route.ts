@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     while (hasNextPage) {
       let response
       try {
-        response = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany({
+        response = await whopSdk.payments.listReceiptsForCompany({
           companyId,
           first: 50,
           after: cursor,
