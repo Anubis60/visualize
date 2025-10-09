@@ -21,11 +21,18 @@ export async function GET(request: NextRequest) {
     let cursor: string | undefined = undefined
 
     while (hasNextPage) {
-      const response = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany({
-        companyId,
-        first: 50,
-        after: cursor,
-      })
+      let response
+      try {
+        response = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany({
+          companyId,
+          first: 50,
+          after: cursor,
+        })
+      } catch (sdkError) {
+        console.error('\n❌ SDK Error Details:')
+        console.error(JSON.stringify(sdkError, null, 2))
+        throw new Error(`Failed to fetch receipts: ${sdkError instanceof Error ? sdkError.message : 'Unknown SDK error'}`)
+      }
 
       // Log raw SDK response
       console.log('\n🔍 RAW SDK RESPONSE:')
