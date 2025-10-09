@@ -99,6 +99,20 @@ export async function GET(request: NextRequest) {
     console.log(`  Active Unique Subscribers: ${activeUniqueSubscribers}`)
     console.log(`  Active Memberships: ${subscriberMetrics.active}\n`)
 
+    // Extract unique plans with their access pass titles
+    const uniquePlans = allPlans
+      .filter(plan => plan.accessPass?.title)
+      .reduce((acc, plan) => {
+        const existing = acc.find(p => p.id === plan.id)
+        if (!existing) {
+          acc.push({
+            id: plan.id,
+            name: plan.accessPass?.title || 'Unknown Plan'
+          })
+        }
+        return acc
+      }, [] as Array<{ id: string; name: string }>)
+
     const response = {
       mrr: {
         total: mrrData.total,
@@ -108,6 +122,7 @@ export async function GET(request: NextRequest) {
       arpu,
       subscribers: subscriberMetrics,
       activeUniqueSubscribers,
+      plans: uniquePlans,
       timestamp: new Date().toISOString(),
     }
 

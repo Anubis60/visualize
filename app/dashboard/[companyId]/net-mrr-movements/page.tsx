@@ -9,6 +9,7 @@ interface AnalyticsData {
     total: number
   }
   activeUniqueSubscribers: number
+  plans: Array<{ id: string; name: string }>
 }
 
 export default function NetMRRMovementsPage({ params }: { params: Promise<{ companyId: string }> }) {
@@ -45,12 +46,7 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
     return <div className="p-8">Failed to load analytics data</div>
   }
 
-  // TODO: Fetch actual plans list from API
-  const plans = [
-    { id: 'plan1', name: 'Basic Plan' },
-    { id: 'plan2', name: 'Pro Plan' },
-    { id: 'plan3', name: 'Enterprise Plan' },
-  ]
+  const plans = analytics.plans || []
 
   // Mock MRR movements data - in production, track actual subscription changes
   const movementsData = [
@@ -96,24 +92,6 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
           <div className="text-2xl font-bold text-red-600">-${totalChurn}</div>
           <div className="text-xs text-gray-500 mt-1">Cancelled subscriptions</div>
         </div>
-      </div>
-
-      {/* Chart Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <select
-          value={selectedPlan || 'all'}
-          onChange={(e) => setSelectedPlan(e.target.value === 'all' ? null : e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="all">All Plans</option>
-          {plans.map((plan) => (
-            <option key={plan.id} value={plan.id}>{plan.name}</option>
-          ))}
-        </select>
-
-        <span className="text-sm text-gray-600">
-          {dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </span>
       </div>
 
       {/* Net MRR Movements Chart */}

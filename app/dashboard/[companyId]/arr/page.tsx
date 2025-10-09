@@ -10,6 +10,7 @@ interface AnalyticsData {
   mrr: {
     total: number
   }
+  plans: Array<{ id: string; name: string }>
 }
 
 interface HistoricalData {
@@ -69,12 +70,7 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
     return <div className="p-8">Failed to load analytics data</div>
   }
 
-  // TODO: Fetch actual plans list from API
-  const plans = [
-    { id: 'plan1', name: 'Basic Plan' },
-    { id: 'plan2', name: 'Pro Plan' },
-    { id: 'plan3', name: 'Enterprise Plan' },
-  ]
+  const plans = analytics.plans || []
 
   return (
     <div className="p-8">
@@ -104,24 +100,6 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
             <div className="text-sm text-gray-500 mt-1">${analytics.mrr.total.toFixed(2)} × 12 = ${analytics.arr.toFixed(2)}</div>
           </div>
         </div>
-      </div>
-
-      {/* Chart Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <select
-          value={selectedPlan || 'all'}
-          onChange={(e) => setSelectedPlan(e.target.value === 'all' ? null : e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="all">All Plans</option>
-          {plans.map((plan) => (
-            <option key={plan.id} value={plan.id}>{plan.name}</option>
-          ))}
-        </select>
-
-        <span className="text-sm text-gray-600">
-          {dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </span>
       </div>
 
       {/* ARR Trend Chart */}
