@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
-import { useChartData } from '@/lib/hooks/useChartData'
+import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
   mrr: {
@@ -18,17 +18,9 @@ interface AnalyticsData {
   plans: Array<{ id: string; name: string }>
 }
 
-interface HistoricalData {
-  date: string
-  mrr: number
-  arr: number
-  activeSubscribers: number
-  arpu: number
-}
-
 export default function MRRPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
+  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

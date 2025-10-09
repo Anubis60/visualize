@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
-import { useChartData } from '@/lib/hooks/useChartData'
+import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 import { Users } from 'lucide-react'
 
 interface AnalyticsData {
@@ -19,14 +19,9 @@ interface AnalyticsData {
   timestamp: string
 }
 
-interface HistoricalData {
-  date: string
-  activeSubscribers: number
-}
-
 export default function SubscribersPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
+  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

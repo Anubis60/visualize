@@ -2,12 +2,13 @@ import { useState, useMemo } from 'react'
 import { subDays, subWeeks, subMonths, subQuarters, subYears, format, startOfDay, endOfDay } from 'date-fns'
 import { ChartType, TimePeriod } from '@/components/charts/ChartControls'
 
-interface RawDataPoint {
+export interface HistoricalDataPoint {
   date: string
   mrr: number
   arr: number
   activeSubscribers: number
   arpu: number
+  churnRate?: number
 }
 
 interface ChartDataPoint {
@@ -16,8 +17,8 @@ interface ChartDataPoint {
 }
 
 export function useChartData(
-  rawData: RawDataPoint[],
-  metric: 'mrr' | 'arr' | 'arpu' | 'activeSubscribers'
+  rawData: HistoricalDataPoint[],
+  metric: 'mrr' | 'arr' | 'arpu' | 'activeSubscribers' | 'churnRate'
 ) {
   const [chartType, setChartType] = useState<ChartType>('line')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
@@ -77,7 +78,7 @@ export function useChartData(
     // Format for chart
     return sortedData.map(item => ({
       date: format(new Date(item.date), 'MMM d'),
-      value: item[metric],
+      value: item[metric] ?? 0,
     }))
   }, [rawData, dateRange, metric])
 
