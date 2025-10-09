@@ -50,11 +50,20 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
   activeMemberships.forEach(membership => {
     const planData = membership.planData
-    if (!planData) return
+    if (!planData) {
+      console.log(`⚠️ Membership ${membership.id} has no planData`)
+      return
+    }
+
+    console.log(`\n📋 Plan: ${planData.title || 'UNNAMED'}`)
+    console.log(`   Type: ${planData.planType}`)
+    console.log(`   Raw Renewal Price: $${planData.rawRenewalPrice}`)
+    console.log(`   Billing Period: ${planData.billingPeriod} days`)
+    console.log(`   Full Plan Object:`, JSON.stringify(planData, null, 2))
 
     // Skip one-time or free plans
     if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) {
-      console.log(`Skipping ${planData.title}: ${planData.planType}, $${planData.rawRenewalPrice}`)
+      console.log(`   ❌ Skipping: ${planData.planType}, $${planData.rawRenewalPrice}`)
       return
     }
 
