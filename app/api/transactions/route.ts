@@ -15,19 +15,8 @@ export async function GET(request: NextRequest) {
 
     console.log('\n💳 Fetching all transactions for company:', companyId)
 
-    interface Receipt {
-      status?: string
-      friendlyStatus?: string
-      currency?: string
-      paymentProcessor?: string
-      finalAmount?: number
-      settledUsdAmount?: number
-      refundedAmount?: number
-      [key: string]: unknown
-    }
-
     // Fetch ALL receipts/transactions using pagination
-    let allReceipts: Receipt[] = []
+    let allReceipts: unknown[] = []
     let hasNextPage = true
     let cursor: string | undefined = undefined
 
@@ -38,7 +27,7 @@ export async function GET(request: NextRequest) {
         after: cursor,
       })
 
-      const receipts = (response?.receipts?.nodes || []).filter((r): r is Receipt => r !== null) as Receipt[]
+      const receipts = (response?.receipts?.nodes || []).filter(r => r !== null)
       allReceipts = [...allReceipts, ...receipts]
 
       hasNextPage = response?.receipts?.pageInfo?.hasNextPage || false
@@ -61,29 +50,42 @@ export async function GET(request: NextRequest) {
     // Log summary stats
     const stats = {
       total: allReceipts.length,
-      byStatus: allReceipts.reduce((acc: Record<string, number>, r) => {
-        const status = r.status || 'unknown'
+      byStatus: allReceipts.reduce((acc: Record<string, number>, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        const status = (receipt.status as string) || 'unknown'
         acc[status] = (acc[status] || 0) + 1
         return acc
       }, {}),
-      byFriendlyStatus: allReceipts.reduce((acc: Record<string, number>, r) => {
-        const friendlyStatus = r.friendlyStatus || 'unknown'
+      byFriendlyStatus: allReceipts.reduce((acc: Record<string, number>, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        const friendlyStatus = (receipt.friendlyStatus as string) || 'unknown'
         acc[friendlyStatus] = (acc[friendlyStatus] || 0) + 1
         return acc
       }, {}),
-      byCurrency: allReceipts.reduce((acc: Record<string, number>, r) => {
-        const currency = r.currency || 'unknown'
+      byCurrency: allReceipts.reduce((acc: Record<string, number>, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        const currency = (receipt.currency as string) || 'unknown'
         acc[currency] = (acc[currency] || 0) + 1
         return acc
       }, {}),
-      byPaymentProcessor: allReceipts.reduce((acc: Record<string, number>, r) => {
-        const processor = r.paymentProcessor || 'unknown'
+      byPaymentProcessor: allReceipts.reduce((acc: Record<string, number>, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        const processor = (receipt.paymentProcessor as string) || 'unknown'
         acc[processor] = (acc[processor] || 0) + 1
         return acc
       }, {}),
-      totalRevenue: allReceipts.reduce((sum, r) => sum + (r.finalAmount || 0), 0),
-      totalRevenueUSD: allReceipts.reduce((sum, r) => sum + (r.settledUsdAmount || 0), 0),
-      totalRefunded: allReceipts.reduce((sum, r) => sum + (r.refundedAmount || 0), 0),
+      totalRevenue: allReceipts.reduce((sum, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        return sum + ((receipt.finalAmount as number) || 0)
+      }, 0),
+      totalRevenueUSD: allReceipts.reduce((sum, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        return sum + ((receipt.settledUsdAmount as number) || 0)
+      }, 0),
+      totalRefunded: allReceipts.reduce((sum, r: unknown) => {
+        const receipt = r as Record<string, unknown>
+        return sum + ((receipt.refundedAmount as number) || 0)
+      }, 0),
     }
 
     console.log('\n📈 Transaction Stats:')
