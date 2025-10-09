@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 import { useEffect, useState } from 'react'
-import { whopSdk } from '@/lib/whop/sdk'
 
 interface SidebarProps {
   companyId: string
@@ -28,7 +27,11 @@ export function Sidebar({ companyId }: SidebarProps) {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const result = await whopSdk.companies.getCompany({ companyId })
+        const response = await fetch(`/api/company?company_id=${companyId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch company data')
+        }
+        const result = await response.json()
         setCompany(result)
       } catch (error) {
         console.error('Failed to fetch company data:', error)
