@@ -15,27 +15,37 @@ interface AnalyticsData {
   }
 }
 
+interface HistoricalData {
+  date: string
+  mrr: number
+  arr: number
+  activeSubscribers: number
+  arpu: number
+}
+
 export default function MRRPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     params.then((p) => {
       console.log('🔍 MRR Page: Fetching analytics for company:', p.companyId)
-      fetch(`/api/analytics?company_id=${p.companyId}`)
-        .then(res => {
-          console.log('📡 MRR Page: Response status:', res.status)
-          return res.json()
-        })
-        .then(data => {
-          console.log('📊 MRR Page: Received data:', data)
-          console.log('💰 Total MRR:', data.mrr?.total)
-          console.log('📋 MRR Breakdown:', data.mrr?.breakdown)
-          setAnalytics(data)
+
+      // Fetch current analytics
+      Promise.all([
+        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
+        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=90`).then(res => res.json())
+      ])
+        .then(([currentData, historicalResponse]) => {
+          console.log('📊 MRR Page: Received current data:', currentData)
+          console.log('📈 MRR Page: Received historical data:', historicalResponse)
+          setAnalytics(currentData)
+          setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
         .catch(err => {
-          console.error('❌ MRR Page: Failed to fetch analytics:', err)
+          console.error('❌ MRR Page: Failed to fetch data:', err)
           setLoading(false)
         })
     })
@@ -49,19 +59,19 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
     return <div className="p-8">Failed to load analytics data</div>
   }
 
-  // Mock historical data - in production, this would come from your database
-  const historicalData = [
-    { month: 'Jan', mrr: 0 },
-    { month: 'Feb', mrr: 0 },
-    { month: 'Mar', mrr: 0 },
-    { month: 'Apr', mrr: 0 },
-    { month: 'May', mrr: analytics.mrr.total * 0.4 },
-    { month: 'Jun', mrr: analytics.mrr.total * 0.6 },
-    { month: 'Jul', mrr: analytics.mrr.total * 0.75 },
-    { month: 'Aug', mrr: analytics.mrr.total * 0.85 },
-    { month: 'Sep', mrr: analytics.mrr.total * 0.92 },
-    { month: 'Oct', mrr: analytics.mrr.total },
-  ]
+  // Format historical data for the chart
+  const chartData = historicalData.map(item => ({
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    mrr: item.mrr,
+  }))
+
+  // If no historical data, show current value only
+  if (chartData.length === 0) {
+    chartData.push({
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      mrr: analytics.mrr.total,
+    })
+  }
 
   return (
     <div className="p-8">
@@ -101,26 +111,35 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
 
       {/* MRR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">MRR Growth Trend</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={historicalData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip
-              formatter={(value: number) => `$${value.toFixed(2)}`}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="mrr"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              name="MRR"
-              dot={{ fill: '#3b82f6' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">MRR Growth Trend (Last 90 Days)</h2>
+        {chartData.length > 1 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number) => `$${value.toFixed(2)}`}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="mrr"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                name="MRR"
+                dot={{ fill: '#3b82f6' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <p className="text-lg mb-2">No historical data yet</p>
+              <p className="text-sm">Check back tomorrow to see your MRR trend</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Info Panel */}

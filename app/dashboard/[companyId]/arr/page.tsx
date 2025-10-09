@@ -10,27 +10,37 @@ interface AnalyticsData {
   }
 }
 
+interface HistoricalData {
+  date: string
+  mrr: number
+  arr: number
+  activeSubscribers: number
+  arpu: number
+}
+
 export default function ARRPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     params.then((p) => {
       console.log('🔍 ARR Page: Fetching analytics for company:', p.companyId)
-      fetch(`/api/analytics?company_id=${p.companyId}`)
-        .then(res => {
-          console.log('📡 ARR Page: Response status:', res.status)
-          return res.json()
-        })
-        .then(data => {
-          console.log('📊 ARR Page: Received data:', data)
-          console.log('💰 Total ARR:', data.arr)
-          console.log('💵 Total MRR:', data.mrr?.total)
-          setAnalytics(data)
+
+      // Fetch current and historical analytics
+      Promise.all([
+        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
+        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=90`).then(res => res.json())
+      ])
+        .then(([currentData, historicalResponse]) => {
+          console.log('📊 ARR Page: Received current data:', currentData)
+          console.log('📈 ARR Page: Received historical data:', historicalResponse)
+          setAnalytics(currentData)
+          setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
         .catch(err => {
-          console.error('❌ ARR Page: Failed to fetch analytics:', err)
+          console.error('❌ ARR Page: Failed to fetch data:', err)
           setLoading(false)
         })
     })
@@ -44,13 +54,19 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
     return <div className="p-8">Failed to load analytics data</div>
   }
 
-  // Mock quarterly breakdown
-  const quarterlyData = [
-    { quarter: 'Q1', arr: analytics.arr * 0.7 },
-    { quarter: 'Q2', arr: analytics.arr * 0.85 },
-    { quarter: 'Q3', arr: analytics.arr * 0.92 },
-    { quarter: 'Q4', arr: analytics.arr },
-  ]
+  // Format historical data for the chart
+  const chartData = historicalData.map(item => ({
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    arr: item.arr,
+  }))
+
+  // If no historical data, show current value only
+  if (chartData.length === 0) {
+    chartData.push({
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      arr: analytics.arr,
+    })
+  }
 
   return (
     <div className="p-8">
@@ -82,26 +98,35 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
         </div>
       </div>
 
-      {/* Quarterly ARR Chart */}
+      {/* ARR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quarterly ARR Growth</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={quarterlyData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="quarter" />
-            <YAxis />
-            <Tooltip
-              formatter={(value: number) => `$${value.toFixed(2)}`}
-            />
-            <Legend />
-            <Bar
-              dataKey="arr"
-              fill="#10b981"
-              name="ARR"
-              radius={[8, 8, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">ARR Growth Trend (Last 90 Days)</h2>
+        {chartData.length > 1 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number) => `$${value.toFixed(2)}`}
+              />
+              <Legend />
+              <Bar
+                dataKey="arr"
+                fill="#10b981"
+                name="ARR"
+                radius={[8, 8, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <p className="text-lg mb-2">No historical data yet</p>
+              <p className="text-sm">Check back tomorrow to see your ARR trend</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Info Panel */}
