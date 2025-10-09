@@ -16,12 +16,12 @@ export function calculateSubscriberMetrics(memberships: Membership[]): Subscribe
 
   memberships.forEach(membership => {
     const isActive = (membership.status === 'active' || membership.status === 'completed') &&
-                     membership.canceled_at === null &&
-                     (!membership.renewal_period_end || membership.renewal_period_end > now)
+                     membership.canceledAt === null &&
+                     (!membership.expiresAt || membership.expiresAt > now)
 
     if (isActive) {
       metrics.active++
-    } else if (membership.status === 'canceled' || membership.canceled_at !== null) {
+    } else if (membership.status === 'canceled' || membership.canceledAt !== null) {
       metrics.cancelled++
     } else if (membership.status === 'trialing') {
       metrics.trialing++
@@ -53,8 +53,8 @@ export function getActiveUniqueSubscribers(memberships: Membership[]): number {
     memberships
       .filter(m => {
         const isActive = (m.status === 'active' || m.status === 'completed') &&
-                         m.canceled_at === null &&
-                         (!m.renewal_period_end || m.renewal_period_end > now)
+                         m.canceledAt === null &&
+                         (!m.expiresAt || m.expiresAt > now)
         return isActive && m.member
       })
       .map(m => m.member!.id)

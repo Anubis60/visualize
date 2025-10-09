@@ -1,60 +1,49 @@
 export interface Plan {
   id: string
-  renewal_price: number  // REST API uses snake_case
-  initial_price: number
-  billing_period: number | null // days, or null for one_time
-  plan_type: 'renewal' | 'one_time'
-  currency: string
+  rawRenewalPrice: number  // GraphQL API uses camelCase
+  rawInitialPrice: number
+  billingPeriod: number | null // days, or null for one_time
+  planType: 'renewal' | 'one_time'
+  baseCurrency: string
   description?: string | null
-  product?: {
+  accessPass?: {
     id: string
     title: string
   } | null
-  company?: {
-    id: string
-    title: string
-  } | null
-  created_at?: number
-  updated_at?: number
+  createdAt?: number
+  updatedAt?: number
   visibility?: string
-  release_method?: string
+  releaseMethod?: string
   __typename?: string
 }
 
 export interface Membership {
   id: string
-  status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'completed'
-  created_at: number  // Unix timestamp in seconds
-  updated_at?: number
-  canceled_at: number | null
-  renewal_period_start?: number | null
-  renewal_period_end?: number | null
-  cancel_at_period_end?: boolean
-  cancellation_reason?: string | null
-  currency?: string
-  manage_url?: string
-  license_key?: string
+  status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'completed' | 'expired'
+  createdAt: number  // Unix timestamp in seconds - GraphQL uses camelCase
+  canceledAt: number | null
+  expiresAt: number | null
+  cancelationReason: string | null
+  totalSpend: number
   plan?: {
     id: string
+    __typename?: string
   }
   // Enriched plan data (populated after fetching from API)
   planData?: Plan
-  user?: {
-    id: string
-    username?: string
-    name?: string | null
-  } | null
-  member?: {
-    id: string
-  } | null
-  company?: {
+  accessPass?: {
     id: string
     title: string
+    __typename?: string
   }
-  promo_code?: {
+  member?: {
     id: string
+    email: string
+    username?: string
+    name?: string | null
+    __typename?: string
   } | null
-  metadata?: Record<string, unknown>
+  promoCode?: unknown
   __typename?: string
 }
 
