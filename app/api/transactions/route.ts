@@ -26,11 +26,22 @@ export async function GET(request: NextRequest) {
     while (hasNextPage) {
       let response
       try {
-        response = await whopSdk.payments.listReceiptsForCompany({
+        console.log(`🔄 Fetching page with cursor: ${cursor || 'initial'}`)
+
+        // Try both with and without filter to see which works
+        const requestParams = {
           companyId,
           first: 50,
-          after: cursor,
-        })
+          ...(cursor && { after: cursor }),
+          filter: {
+            // Don't filter by status - get all receipts
+            statuses: undefined,
+          }
+        }
+
+        console.log('📝 Request params:', JSON.stringify(requestParams, null, 2))
+
+        response = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany(requestParams)
       } catch (sdkError) {
         console.error('\n❌ SDK Error Details:')
         console.error('Error type:', typeof sdkError)
