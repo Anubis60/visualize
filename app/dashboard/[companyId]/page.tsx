@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { DollarSign, Users, TrendingUp, Activity } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
@@ -28,18 +28,12 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage({ params }: { params: Promise<{ companyId: string }> }) {
+  const { companyId } = use(params)
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [companyId, setCompanyId] = useState<string | null>(null)
 
   useEffect(() => {
-    params.then(p => setCompanyId(p.companyId))
-  }, [params])
-
-  useEffect(() => {
-    if (!companyId) return
-
     async function fetchAnalytics() {
       try {
         console.log('🔍 Dashboard: Fetching analytics for company:', companyId)
@@ -74,7 +68,8 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
     }
 
     fetchAnalytics()
-  }, [companyId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (loading) {
     return (
