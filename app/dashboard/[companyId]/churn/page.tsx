@@ -1,40 +1,75 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { ChartControls } from '@/components/charts/ChartControls'
+import { MetricsChart } from '@/components/charts/MetricsChart'
+import { useChartData } from '@/lib/hooks/useChartData'
 import { TrendingDown } from 'lucide-react'
 
+interface AnalyticsData {
+  subscribers: {
+    active: number
+    cancelled: number
+  }
+  plans: Array<{ id: string; name: string }>
+}
+
+interface HistoricalData {
+  date: string
+  churnRate: number
+}
+
 export default function ChurnPage({ params }: { params: Promise<{ companyId: string }> }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    params.then(() => {
-      setLoading(false)
+    params.then((p) => {
+      // Fetch current analytics and historical data
+      Promise.all([
+        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
+        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
+      ])
+        .then(([currentData, historicalResponse]) => {
+          setAnalytics(currentData)
+          setHistoricalData(historicalResponse.data || [])
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error('Failed to fetch data:', err)
+          setLoading(false)
+        })
     })
   }, [params])
 
+  // Chart data management
+  const {
+    chartType,
+    setChartType,
+    selectedPlan,
+    setSelectedPlan,
+    timePeriod,
+    setTimePeriod,
+    dateRange,
+    setDateRange,
+    chartData,
+  } = useChartData(historicalData, 'churnRate')
+
   if (loading) {
-    return (
-      <div className="p-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    )
+    return <div className="p-8">Loading...</div>
   }
 
-  // Mock churn data (will be calculated from actual membership data later)
-  const churnData = [
-    { date: 'Week 1', churnRate: 4.2, churned: 3, active: 71 },
-    { date: 'Week 2', churnRate: 5.8, churned: 4, active: 69 },
-    { date: 'Week 3', churnRate: 3.1, churned: 2, active: 65 },
-    { date: 'Week 4', churnRate: 6.5, churned: 4, active: 62 },
-    { date: 'Current', churnRate: 5.2, churned: 3, active: 58 },
-  ]
+  if (!analytics) {
+    return <div className="p-8">Failed to load analytics data</div>
+  }
 
-  const avgChurnRate = churnData.reduce((sum, d) => sum + d.churnRate, 0) / churnData.length
-  const totalChurned = churnData.reduce((sum, d) => sum + d.churned, 0)
+  const plans = analytics.plans || []
+
+  const totalChurned = analytics.subscribers.cancelled
+  const activeSubscribers = analytics.subscribers.active
+  // Mock churn rate for now (will calculate from historical data later)
+  const avgChurnRate = 5.2
 
   return (
     <div className="p-8">
@@ -61,41 +96,31 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
         </div>
         <div className="bg-white rounded-xl shadow p-6">
           <p className="text-sm text-gray-600 mb-1">Current Active</p>
-          <p className="text-3xl font-bold text-green-600">{churnData[churnData.length - 1].active}</p>
+          <p className="text-3xl font-bold text-green-600">{activeSubscribers}</p>
           <p className="text-xs text-gray-500 mt-2">As of today</p>
         </div>
       </div>
 
       {/* Churn Rate Chart */}
       <div className="bg-white rounded-xl shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-6">Churn Rate Trend</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={churnData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis yAxisId="left" label={{ value: 'Churn Rate (%)', angle: -90, position: 'insideLeft' }} />
-            <YAxis yAxisId="right" orientation="right" label={{ value: 'Active Subscribers', angle: 90, position: 'insideRight' }} />
-            <Tooltip />
-            <Legend />
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="churnRate"
-              stroke="#ef4444"
-              strokeWidth={3}
-              name="Churn Rate (%)"
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="active"
-              stroke="#10b981"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="Active Subscribers"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <ChartControls
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          plans={plans}
+          selectedPlan={selectedPlan}
+          onPlanChange={setSelectedPlan}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+        />
+
+        <MetricsChart
+          data={chartData}
+          chartType={chartType}
+          color="#ef4444"
+          label="Churn Rate (%)"
+        />
       </div>
 
       {/* Insights */}
@@ -103,12 +128,9 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
         <h3 className="text-lg font-semibold text-yellow-900 mb-2">📊 Churn Insights</h3>
         <ul className="space-y-2 text-yellow-800">
           <li>• Your average churn rate is {avgChurnRate.toFixed(1)}% - Industry benchmark is ~5-7%</li>
-          <li>• You lost {totalChurned} subscribers in the last 30 days</li>
-          <li>• Peak churn occurred in Week 4 ({Math.max(...churnData.map(d => d.churnRate)).toFixed(1)}%)</li>
+          <li>• You have {totalChurned} cancelled subscriptions</li>
+          <li>• {activeSubscribers} active subscribers currently</li>
         </ul>
-        <p className="text-sm text-yellow-700 mt-4">
-          * Churn calculations will be real-time once we implement historical tracking
-        </p>
       </div>
     </div>
   )
