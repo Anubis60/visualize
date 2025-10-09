@@ -119,8 +119,6 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
 
       {/* MRR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">MRR Growth Trend</h2>
-
         <ChartControls
           chartType={chartType}
           onChartTypeChange={setChartType}

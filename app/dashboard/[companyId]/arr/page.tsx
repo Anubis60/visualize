@@ -108,8 +108,6 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
 
       {/* ARR Trend Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">ARR Growth Trend</h2>
-
         <ChartControls
           chartType={chartType}
           onChartTypeChange={setChartType}

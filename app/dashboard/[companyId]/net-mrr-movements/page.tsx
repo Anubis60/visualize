@@ -100,8 +100,6 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
 
       {/* Net MRR Movements Chart */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Monthly Net MRR Movements</h2>
-
         <ChartControls
           chartType={chartType}
           onChartTypeChange={setChartType}

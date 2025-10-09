@@ -79,22 +79,19 @@ export function ChartControls({
       {/* Right: Filters and Controls */}
       <div className="flex items-center gap-3">
         {/* Plan Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Filter by:</span>
-          <Select value={selectedPlan || 'all'} onValueChange={(value) => onPlanChange(value === 'all' ? null : value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Plans" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Plans</SelectItem>
-              {plans.map((plan) => (
-                <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={selectedPlan || 'all'} onValueChange={(value) => onPlanChange(value === 'all' ? null : value)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Plans" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Plans</SelectItem>
+            {plans.map((plan) => (
+              <SelectItem key={plan.id} value={plan.id}>
+                {plan.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Date Range Picker */}
         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
