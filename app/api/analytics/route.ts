@@ -62,11 +62,6 @@ export async function GET(request: NextRequest) {
 
     // Create a map of planId -> planData for quick lookup
     const planMap = new Map<string, Plan>()
-    console.log('\n🗂️ Sample raw plan data (first 3 plans):')
-    allPlans.slice(0, 3).forEach((plan: unknown) => {
-      console.log(JSON.stringify(plan, null, 2))
-    })
-
     allPlans.forEach((plan: unknown) => {
       const p = plan as Plan
       planMap.set(p.id, p)

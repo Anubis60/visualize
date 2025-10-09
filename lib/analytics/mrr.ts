@@ -36,12 +36,12 @@ export function calculateMRR(memberships: Membership[]): MRRData {
   }
 
   const activeMemberships = memberships.filter(m => {
-    // Whop uses "completed" status for active memberships
-    // Active = completed + not cancelled + not expired
+    // Active memberships are those with status 'active' or 'completed'
+    // that haven't been canceled or are still within their renewal period
     const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
-    const isActive = m.status === 'completed' &&
-                     m.canceledAt === null &&
-                     (m.expiresAt === null || m.expiresAt > now)
+    const isActive = (m.status === 'active' || m.status === 'completed') &&
+                     m.canceled_at === null &&
+                     (m.renewal_period_end === null || m.renewal_period_end > now)
     return isActive && m.planData
   })
 
@@ -50,31 +50,22 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
   activeMemberships.forEach(membership => {
     const planData = membership.planData
-    if (!planData) {
-      console.log(`⚠️ Membership ${membership.id} has no planData`)
-      return
-    }
-
-    console.log(`\n📋 Plan: ${planData.title || 'UNNAMED'}`)
-    console.log(`   Type: ${planData.planType}`)
-    console.log(`   Raw Renewal Price: $${planData.rawRenewalPrice}`)
-    console.log(`   Billing Period: ${planData.billingPeriod} days`)
-    console.log(`   Full Plan Object:`, JSON.stringify(planData, null, 2))
+    if (!planData) return
 
     // Skip one-time or free plans
-    if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) {
-      console.log(`   ❌ Skipping: ${planData.planType}, $${planData.rawRenewalPrice}`)
+    if (planData.plan_type === 'one_time' || planData.renewal_price === 0) {
       return
     }
 
     // Calculate monthly recurring revenue
-    const price = planData.rawRenewalPrice // Already in dollars
-    const billingPeriod = planData.billingPeriod || 30 // Default to 30 days
+    const price = planData.renewal_price // Already in dollars
+    const billingPeriod = planData.billing_period || 30 // Default to 30 days
 
     // Normalize to monthly (30 days)
     const monthlyRevenue = (price / billingPeriod) * 30
 
-    console.log(`${planData.title}: $${price} / ${billingPeriod} days = $${monthlyRevenue.toFixed(2)}/month`)
+    const planTitle = planData.product?.title || 'UNNAMED'
+    console.log(`${planTitle}: $${price}/${billingPeriod}d = $${monthlyRevenue.toFixed(2)}/mo`)
 
     // Categorize by billing period
     if (billingPeriod === 30) {

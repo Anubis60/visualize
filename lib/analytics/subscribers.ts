@@ -15,16 +15,18 @@ export function calculateSubscriberMetrics(memberships: Membership[]): Subscribe
   const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
 
   memberships.forEach(membership => {
-    const isActive = membership.status === 'completed' &&
-                     membership.canceledAt === null &&
-                     (membership.expiresAt === null || membership.expiresAt > now)
+    const isActive = (membership.status === 'active' || membership.status === 'completed') &&
+                     membership.canceled_at === null &&
+                     (membership.renewal_period_end === null || membership.renewal_period_end > now)
 
     if (isActive) {
       metrics.active++
-    } else if (membership.status === 'canceled' || membership.canceledAt !== null) {
+    } else if (membership.status === 'canceled' || membership.canceled_at !== null) {
       metrics.cancelled++
     } else if (membership.status === 'trialing') {
       metrics.trialing++
+    } else if (membership.status === 'past_due') {
+      metrics.past_due++
     }
   })
 
@@ -50,9 +52,9 @@ export function getActiveUniqueSubscribers(memberships: Membership[]): number {
   const activeUsers = new Set(
     memberships
       .filter(m => {
-        const isActive = m.status === 'completed' &&
-                         m.canceledAt === null &&
-                         (m.expiresAt === null || m.expiresAt > now)
+        const isActive = (m.status === 'active' || m.status === 'completed') &&
+                         m.canceled_at === null &&
+                         (m.renewal_period_end === null || m.renewal_period_end > now)
         return isActive && m.member
       })
       .map(m => m.member!.id)
