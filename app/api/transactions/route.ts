@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         after: cursor,
       })
 
-      const receipts = response?.receipts?.nodes || []
+      const receipts = (response?.receipts?.nodes || []).filter((r): r is Receipt => r !== null) as Receipt[]
       allReceipts = [...allReceipts, ...receipts]
 
       hasNextPage = response?.receipts?.pageInfo?.hasNextPage || false
