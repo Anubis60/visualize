@@ -4,12 +4,12 @@ import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const companyId = searchParams.get('company_id') || process.env.NEXT_PUBLIC_WHOP_COMPANY_ID
+    const companyId = searchParams.get('company_id')
     const days = parseInt(searchParams.get('days') || '30')
 
     if (!companyId) {
       return NextResponse.json(
-        { error: 'Company ID is required' },
+        { error: 'Company ID is required. Pass it as ?company_id=YOUR_ID' },
         { status: 400 }
       )
     }

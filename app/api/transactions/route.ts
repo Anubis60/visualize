@@ -4,18 +4,11 @@ import { whopSdk } from '@/lib/whop/sdk'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const companyIdFromParams = searchParams.get('company_id')
-    const companyIdFromEnv = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID
-    const companyId = companyIdFromParams || companyIdFromEnv
-
-    console.log('\n💳 Transaction API Request:')
-    console.log('  - company_id from params:', companyIdFromParams)
-    console.log('  - company_id from env:', companyIdFromEnv)
-    console.log('  - Using company_id:', companyId)
+    const companyId = searchParams.get('company_id')
 
     if (!companyId) {
       return NextResponse.json(
-        { error: 'Company ID is required' },
+        { error: 'Company ID is required. Pass it as ?company_id=YOUR_ID' },
         { status: 400 }
       )
     }
