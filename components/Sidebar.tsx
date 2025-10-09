@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { Users, TrendingDown, DollarSign, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 
 interface SidebarProps {
@@ -175,22 +175,6 @@ export function Sidebar({ companyId }: SidebarProps) {
           >
             <DollarSign className="h-4 w-4" />
             {!collapsed && <span className="ml-3">Avg Revenue Per Account</span>}
-          </Link>
-        </div>
-
-        {/* Settings */}
-        <div className="mt-6">
-          <Link
-            href={`/dashboard/${companyId}/settings`}
-            className={cn(
-              "flex items-center hover:bg-slate-800 transition-colors",
-              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
-              isActive(`/dashboard/${companyId}/settings`) && "bg-slate-800 border-l-4 border-blue-500"
-            )}
-            title={collapsed ? "Settings" : undefined}
-          >
-            <Settings className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Settings</span>}
           </Link>
         </div>
       </nav>
