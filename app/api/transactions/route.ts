@@ -74,15 +74,15 @@ export async function GET(request: NextRequest) {
         acc[processor] = (acc[processor] || 0) + 1
         return acc
       }, {}),
-      totalRevenue: allReceipts.reduce((sum, r: unknown) => {
+      totalRevenue: allReceipts.reduce((sum: number, r: unknown) => {
         const receipt = r as Record<string, unknown>
         return sum + ((receipt.finalAmount as number) || 0)
       }, 0),
-      totalRevenueUSD: allReceipts.reduce((sum, r: unknown) => {
+      totalRevenueUSD: allReceipts.reduce((sum: number, r: unknown) => {
         const receipt = r as Record<string, unknown>
         return sum + ((receipt.settledUsdAmount as number) || 0)
       }, 0),
-      totalRefunded: allReceipts.reduce((sum, r: unknown) => {
+      totalRefunded: allReceipts.reduce((sum: number, r: unknown) => {
         const receipt = r as Record<string, unknown>
         return sum + ((receipt.refundedAmount as number) || 0)
       }, 0),
