@@ -27,6 +27,10 @@ export async function GET(request: NextRequest) {
         after: cursor,
       })
 
+      // Log raw SDK response
+      console.log('\n🔍 RAW SDK RESPONSE:')
+      console.log(JSON.stringify(response, null, 2))
+
       const receipts = (response?.receipts?.nodes || []).filter(r => r !== null)
       allReceipts = [...allReceipts, ...receipts]
 
