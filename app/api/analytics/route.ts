@@ -3,6 +3,7 @@ import { whopSdk } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { Membership, Plan } from '@/lib/types/analytics'
+import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
   try {
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
     console.log(`  Active Unique Subscribers: ${activeUniqueSubscribers}`)
     console.log(`  Active Memberships: ${subscriberMetrics.active}\n`)
 
-    return NextResponse.json({
+    const response = {
       mrr: {
         total: mrrData.total,
         breakdown: mrrData.breakdown,
@@ -108,7 +109,37 @@ export async function GET(request: NextRequest) {
       subscribers: subscriberMetrics,
       activeUniqueSubscribers,
       timestamp: new Date().toISOString(),
-    })
+    }
+
+    // Store snapshot in MongoDB for historical tracking
+    try {
+      await metricsRepository.upsertDailySnapshot(companyId, {
+        mrr: {
+          total: mrrData.total,
+          breakdown: mrrData.breakdown,
+        },
+        arr,
+        arpu,
+        subscribers: subscriberMetrics,
+        activeUniqueSubscribers,
+        metadata: {
+          totalMemberships: memberships.length,
+          activeMemberships: enrichedMemberships.filter(m => {
+            const now = Date.now() / 1000
+            return (m.status === 'active' || m.status === 'completed') &&
+                   m.canceledAt === null &&
+                   (!m.expiresAt || m.expiresAt > now)
+          }).length,
+          plansCount: allPlans.length,
+        }
+      })
+      console.log(`✅ Stored daily snapshot for ${companyId}`)
+    } catch (snapshotError) {
+      console.error('Failed to store metrics snapshot:', snapshotError)
+      // Don't fail the request if snapshot storage fails
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error calculating analytics:', error)
     return NextResponse.json(
