@@ -26,26 +26,15 @@ export function Sidebar({ companyId }: SidebarProps) {
       {/* Header */}
       <div className={cn(
         "border-b border-slate-800 flex items-center justify-center",
-        collapsed ? "p-3" : "p-5"
+        collapsed ? "p-3" : "p-4"
       )}>
-        {!collapsed && (
-          <Image
-            src="/images/tie logo.png"
-            alt="Financier Logo"
-            width={140}
-            height={140}
-            className="object-contain"
-          />
-        )}
-        {collapsed && (
-          <Image
-            src="/images/tie logo.png"
-            alt="Financier"
-            width={32}
-            height={32}
-            className="object-contain"
-          />
-        )}
+        <Image
+          src="/images/tie logo transparent.png"
+          alt="Financier Logo"
+          width={collapsed ? 32 : 48}
+          height={collapsed ? 32 : 48}
+          className="object-contain"
+        />
       </div>
 
       {/* Toggle Button */}
