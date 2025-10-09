@@ -18,41 +18,57 @@ export async function GET(request: NextRequest) {
 
     console.log('\n💳 Fetching all transactions for company:', companyId)
 
+    // First, fetch all plans to get plan IDs
+    console.log('📋 Fetching all plans first...')
+    let allPlans: Array<{ id: string }> = []
+    let hasPlanPage = true
+    let planCursor: string | undefined = undefined
+
+    while (hasPlanPage) {
+      const plansResponse = await whopSdk.withCompany(companyId).companies.listPlans({
+        companyId,
+        first: 50,
+        after: planCursor,
+      })
+
+      const planNodes = (plansResponse?.plans?.nodes || []) as Array<{ id: string }>
+      allPlans = [...allPlans, ...planNodes]
+
+      hasPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
+      planCursor = plansResponse?.plans?.pageInfo?.endCursor ?? undefined
+
+      if (!hasPlanPage) break
+    }
+
+    const planIds = allPlans.map(p => p.id)
+    console.log(`✅ Found ${planIds.length} plans:`, planIds)
+
     // Fetch ALL receipts/transactions using pagination
     let allReceipts: unknown[] = []
     let hasNextPage = true
     let cursor: string | undefined = undefined
 
+    // Calculate timestamp for 1 year ago
+    const oneYearAgo = Math.floor(Date.now() / 1000) - (365 * 24 * 60 * 60)
+
     while (hasNextPage) {
       let response
       try {
-        console.log(`🔄 Fetching page with cursor: ${cursor || 'initial'}`)
+        console.log(`🔄 Fetching receipts page with cursor: ${cursor || 'initial'}`)
 
-        // Calculate timestamp for 1 year ago
-        const oneYearAgo = Math.floor(Date.now() / 1000) - (365 * 24 * 60 * 60)
-
-        const requestParams: {
-          companyId: string
-          first: number
-          after?: string
-          filter?: {
-            startDate: number
-          }
-        } = {
-          companyId,
+        response = await whopSdk.payments.listReceiptsForCompany({
+          companyId: companyId,
           first: 50,
+          after: cursor || "pageInfo.endCursor",
           filter: {
+            planIds: planIds,
+            billingReasons: ["manual", "one_time", "subscription", "subscription_create", "subscription_cycle", "subscription_update"],
+            direction: "asc",
+            order: "created_at",
             startDate: oneYearAgo,
-          }
-        }
-
-        if (cursor) {
-          requestParams.after = cursor
-        }
-
-        console.log('📝 Request params:', JSON.stringify(requestParams, null, 2))
-
-        response = await whopSdk.withCompany(companyId).payments.listReceiptsForCompany(requestParams)
+            statuses: ["failed", "partially_refunded", "past_due", "refunded", "succeeded"],
+          },
+        })
       } catch (sdkError) {
         console.error('\n❌ SDK Error Details:')
         console.error('Error type:', typeof sdkError)
