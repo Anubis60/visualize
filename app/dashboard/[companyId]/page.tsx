@@ -43,16 +43,28 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
     async function fetchAnalytics() {
       try {
         console.log('🔍 Dashboard: Fetching analytics for company:', companyId)
-        const response = await fetch(`/api/analytics?company_id=${companyId}`)
-        console.log('📡 Dashboard: Response status:', response.status)
-        if (!response.ok) {
+
+        // Fetch analytics
+        const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
+        console.log('📡 Dashboard: Response status:', analyticsResponse.status)
+        if (!analyticsResponse.ok) {
           throw new Error('Failed to fetch analytics')
         }
-        const data = await response.json()
+        const data = await analyticsResponse.json()
         console.log('📊 Dashboard: Received data:', data)
         console.log('💰 MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
         console.log('👥 Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
+
+        // Fetch transactions in background (don't wait for it)
+        fetch(`/api/transactions?company_id=${companyId}`)
+          .then(res => res.json())
+          .then(transactionData => {
+            console.log('💳 Transactions fetched:', transactionData.total)
+          })
+          .catch(err => {
+            console.error('❌ Error fetching transactions:', err)
+          })
       } catch (err) {
         console.error('❌ Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
