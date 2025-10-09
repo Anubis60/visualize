@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
 
     // Extract unique plans with their access pass titles
     const uniquePlans = allPlans
-      .filter(plan => plan.accessPass?.title)
-      .reduce((acc, plan) => {
+      .filter((plan: Plan) => plan.accessPass?.title)
+      .reduce((acc, plan: Plan) => {
         const existing = acc.find(p => p.id === plan.id)
         if (!existing) {
           acc.push({
