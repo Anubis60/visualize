@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Users, TrendingDown, DollarSign, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useSidebarStore } from '@/lib/stores/sidebarStore'
 
 interface SidebarProps {
   companyId: string
@@ -12,28 +13,38 @@ interface SidebarProps {
 
 export function Sidebar({ companyId }: SidebarProps) {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const collapsed = useSidebarStore(state => state.collapsed)
+  const setCollapsed = useSidebarStore(state => state.setCollapsed)
 
   const isActive = (path: string) => pathname === path
 
   return (
     <aside className={cn(
-      "bg-slate-900 text-white h-screen fixed left-0 top-0 flex flex-col transition-all duration-300",
-      collapsed ? "w-16" : "w-64"
+      "bg-slate-900 text-white h-screen fixed left-0 top-0 flex flex-col transition-all duration-300 z-20",
+      collapsed ? "w-16" : "w-56"
     )}>
       {/* Header */}
       <div className={cn(
-        "p-6 border-b border-slate-800 flex items-center justify-between",
-        collapsed && "p-4"
+        "border-b border-slate-800 flex items-center justify-center",
+        collapsed ? "p-3" : "p-5"
       )}>
         {!collapsed && (
-          <div>
-            <h1 className="text-2xl font-bold">💰 Financier</h1>
-            <p className="text-sm text-slate-400 mt-1">Analytics Dashboard</p>
-          </div>
+          <Image
+            src="/images/tie logo.png"
+            alt="Financier Logo"
+            width={140}
+            height={140}
+            className="object-contain"
+          />
         )}
         {collapsed && (
-          <div className="text-2xl mx-auto">💰</div>
+          <Image
+            src="/images/tie logo.png"
+            alt="Financier"
+            width={32}
+            height={32}
+            className="object-contain"
+          />
         )}
       </div>
 
