@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         response = await whopSdk.payments.listReceiptsForCompany({
           companyId: companyId,
           first: 50,
-          after: cursor || "pageInfo.endCursor",
+          ...(cursor && { after: cursor }),
           filter: {
             planIds: planIds,
             billingReasons: ["manual", "one_time", "subscription", "subscription_create", "subscription_cycle", "subscription_update"],
