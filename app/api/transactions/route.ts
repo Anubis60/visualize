@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     })
 
     const data = await response.json()
-    console.log(data)
+    console.log(JSON.stringify(data, null, 2))
 
     return NextResponse.json(data)
   } catch (error) {
