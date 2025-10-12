@@ -23,22 +23,11 @@ export function initializeCronJobs() {
     console.log('🕐 Initial snapshot triggered (10 seconds after startup)...')
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-      const cronSecret = process.env.CRON_SECRET
-
-      const response = await fetch(`${baseUrl}/api/cron/snapshot`, {
-        method: 'GET',
-        headers: cronSecret ? {
-          'Authorization': `Bearer ${cronSecret}`
-        } : {},
-      })
-
-      if (!response.ok) {
-        throw new Error(`Initial snapshot failed with status ${response.status}`)
-      }
-
-      const result = await response.json()
-      console.log('✅ Initial snapshot completed:', result)
+      // Call the snapshot service directly instead of using fetch
+      // This avoids issues with localhost on Vercel
+      const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
+      await captureAllSnapshots()
+      console.log('✅ Initial snapshot completed successfully')
     } catch (error) {
       console.error('❌ Initial snapshot failed:', error)
     }
@@ -51,22 +40,9 @@ export function initializeCronJobs() {
         console.log('🕐 Daily cron job triggered: Starting snapshot capture...')
 
         try {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-          const cronSecret = process.env.CRON_SECRET
-
-          const response = await fetch(`${baseUrl}/api/cron/snapshot`, {
-            method: 'GET',
-            headers: cronSecret ? {
-              'Authorization': `Bearer ${cronSecret}`
-            } : {},
-          })
-
-          if (!response.ok) {
-            throw new Error(`Cron job failed with status ${response.status}`)
-          }
-
-          const result = await response.json()
-          console.log('✅ Daily cron job completed:', result)
+          const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
+          await captureAllSnapshots()
+          console.log('✅ Daily cron job completed successfully')
         } catch (error) {
           console.error('❌ Daily cron job failed:', error)
         }
