@@ -207,6 +207,7 @@ async function handleMembershipWentValid(membership: WhopMembership) {
 
     // Extract userId from different possible field names
     const userId = membership.user || membership.user_id || membership.userId;
+    const companyId = membership.metadata?.company_id as string | undefined;
     const now = new Date();
 
     // Extract product and plan IDs
@@ -249,12 +250,15 @@ async function handleMembershipWentValid(membership: WhopMembership) {
       { upsert: true }
     );
 
-    // Update subscription record
+    // Update subscription record - use companyId as unique key since that's what checkout uses
+    const subscriptionQuery = companyId ? { companyId } : { userId };
     await subscriptionsCollection.updateOne(
-      { userId },
+      subscriptionQuery,
       {
         $set: {
           membershipId: membership.id,
+          userId: userId,
+          companyId: companyId,
           accessPassId: productId,
           planId: planId,
           status: status,
@@ -266,7 +270,6 @@ async function handleMembershipWentValid(membership: WhopMembership) {
           updatedAt: now
         },
         $setOnInsert: {
-          userId,
           createdAt: now
         }
       },
@@ -299,6 +302,7 @@ async function handleMembershipWentInvalid(membership: WhopMembership) {
     const subscriptionsCollection = db.collection(Collections.SUBSCRIPTIONS);
 
     const userId = membership.user || membership.user_id || membership.userId;
+    const companyId = membership.metadata?.company_id as string | undefined;
     const now = new Date();
 
     // Update user record
@@ -312,9 +316,10 @@ async function handleMembershipWentInvalid(membership: WhopMembership) {
       }
     );
 
-    // Update subscription record
+    // Update subscription record - use companyId as unique key
+    const subscriptionQuery = companyId ? { companyId } : { userId };
     await subscriptionsCollection.updateOne(
-      { userId },
+      subscriptionQuery,
       {
         $set: {
           status: 'expired',
@@ -349,11 +354,13 @@ async function handleMembershipUpdated(membership: WhopMembership) {
     const subscriptionsCollection = db.collection(Collections.SUBSCRIPTIONS);
 
     const userId = membership.user || membership.user_id || membership.userId;
+    const companyId = membership.metadata?.company_id as string | undefined;
     const now = new Date();
 
-    // Update subscription record with latest data
+    // Update subscription record with latest data - use companyId as unique key
+    const subscriptionQuery = companyId ? { companyId } : { userId };
     await subscriptionsCollection.updateOne(
-      { userId },
+      subscriptionQuery,
       {
         $set: {
           cancelAtPeriodEnd: membership.cancel_at_period_end || false,
