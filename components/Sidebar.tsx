@@ -14,8 +14,9 @@ interface SidebarProps {
 
 interface CompanyData {
   title: string
-  logo?: { sourceUrl?: string | null } | null
-  bannerImage?: { sourceUrl?: string | null } | null
+  logo?: string | { sourceUrl?: string | null; __typename?: string } | null
+  bannerImage?: string | { sourceUrl?: string | null; __typename?: string } | null
+  cached?: boolean
 }
 
 export function Sidebar({ companyId }: SidebarProps) {
@@ -42,8 +43,16 @@ export function Sidebar({ companyId }: SidebarProps) {
 
   const isActive = (path: string) => pathname === path
 
+  // Helper function to extract URL from logo/banner (handles both string and object formats)
+  const getImageUrl = (image: string | { sourceUrl?: string | null } | null | undefined): string | null => {
+    if (!image) return null
+    if (typeof image === 'string') return image
+    if (typeof image === 'object' && image.sourceUrl) return image.sourceUrl
+    return null
+  }
+
   // Use banner image if available, otherwise fallback to logo
-  const companyImageUrl = company?.bannerImage?.sourceUrl || company?.logo?.sourceUrl
+  const companyImageUrl = getImageUrl(company?.bannerImage) || getImageUrl(company?.logo)
 
   return (
     <aside className={cn(
