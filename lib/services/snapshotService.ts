@@ -26,9 +26,8 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       route: company.route || companyId,
       logo: company.logo,
       bannerImage: company.bannerImage,
-      industryType: company.industryType,
-      businessType: company.businessType,
-      userId: company.userId,
+      industryType: company.industryType || undefined,
+      businessType: company.businessType || undefined,
       rawData: company,
     })
     console.log('  ✅ Company data updated in database')
