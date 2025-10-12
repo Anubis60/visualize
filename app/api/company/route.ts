@@ -23,16 +23,28 @@ export async function GET(request: NextRequest) {
       if (cachedCompany) {
         console.log(`📦 Using cached company data from companies collection`)
 
-        // Extract bannerImage from rawData if available
+        // Extract logo and bannerImage from rawData if available (rawData has the full Whop API response)
+        let logo: unknown = cachedCompany.logo
         let bannerImage: unknown = undefined
-        if (cachedCompany.rawData && typeof cachedCompany.rawData === 'object' && 'bannerImage' in cachedCompany.rawData) {
-          bannerImage = (cachedCompany.rawData as { bannerImage?: unknown }).bannerImage
+
+        if (cachedCompany.rawData && typeof cachedCompany.rawData === 'object') {
+          const rawData = cachedCompany.rawData as { logo?: unknown; bannerImage?: unknown }
+          // Prefer rawData values as they contain the full Whop API response
+          if ('logo' in rawData) {
+            logo = rawData.logo
+          }
+          if ('bannerImage' in rawData) {
+            bannerImage = rawData.bannerImage
+          }
         }
+
+        console.log(`📦 Logo from cache:`, logo)
+        console.log(`📦 Banner from cache:`, bannerImage)
 
         return NextResponse.json({
           id: cachedCompany.companyId,
           title: cachedCompany.title,
-          logo: cachedCompany.logo,
+          logo,
           bannerImage,
           cached: true,
         })
