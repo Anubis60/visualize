@@ -66,7 +66,7 @@ export function Sidebar({ companyId }: SidebarProps) {
   return (
     <aside className={cn(
       "bg-slate-900 text-white h-screen fixed left-0 top-0 flex flex-col transition-all duration-300 z-20",
-      collapsed ? "w-16" : "w-56"
+      collapsed ? "w-16" : "w-48"
     )}>
       {/* Header */}
       <div className={cn(

@@ -67,7 +67,7 @@ export default function DashboardLayout({
       {/* Main Dashboard - blurred if no subscription */}
       <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
         <Sidebar companyId={companyId} />
-        <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-56'}`}>
+        <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-48'}`}>
           {children}
         </main>
       </div>

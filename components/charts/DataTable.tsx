@@ -10,16 +10,19 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
     return null
   }
 
+  // Limit to most recent 5 months
+  const displayData = data.slice(-5)
+
   // Calculate statistics for each month
   const getRowData = (dataKey: 'value' | 'change' | 'percentChange') => {
-    return data.map((item, index) => {
+    return displayData.map((item, index) => {
       if (dataKey === 'value') {
         return item.value
       } else if (dataKey === 'change') {
-        const prevItem = index > 0 ? data[index - 1] : null
+        const prevItem = index > 0 ? displayData[index - 1] : null
         return prevItem ? item.value - prevItem.value : null
       } else {
-        const prevItem = index > 0 ? data[index - 1] : null
+        const prevItem = index > 0 ? displayData[index - 1] : null
         if (!prevItem || prevItem.value === 0) return null
         return ((item.value - prevItem.value) / prevItem.value) * 100
       }
@@ -29,6 +32,16 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
   const values = getRowData('value')
   const changes = getRowData('change')
   const percentChanges = getRowData('percentChange')
+
+  // Format date to show month name
+  const formatMonthName = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr)
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    } catch {
+      return dateStr
+    }
+  }
 
   return (
     <div className="mt-8">
@@ -41,9 +54,9 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 z-10">
                 Metric
               </th>
-              {data.map((item) => (
+              {displayData.map((item) => (
                 <th key={item.date} className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                  {item.date}
+                  {formatMonthName(item.date)}
                 </th>
               ))}
             </tr>
@@ -120,7 +133,7 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
             Average
           </div>
           <div className="text-xl font-bold text-purple-900">
-            ${(data.reduce((sum, item) => sum + item.value, 0) / data.length).toFixed(2)}
+            ${(displayData.reduce((sum, item) => sum + item.value, 0) / displayData.length).toFixed(2)}
           </div>
         </div>
 
@@ -129,7 +142,7 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
             Highest
           </div>
           <div className="text-xl font-bold text-green-900">
-            ${Math.max(...data.map(d => d.value)).toFixed(2)}
+            ${Math.max(...displayData.map(d => d.value)).toFixed(2)}
           </div>
         </div>
 
@@ -138,7 +151,7 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
             Lowest
           </div>
           <div className="text-xl font-bold text-orange-900">
-            ${Math.min(...data.map(d => d.value)).toFixed(2)}
+            ${Math.min(...displayData.map(d => d.value)).toFixed(2)}
           </div>
         </div>
 
@@ -147,8 +160,8 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
             Total Growth
           </div>
           <div className="text-xl font-bold text-blue-900">
-            {data.length > 1 && data[0].value !== 0
-              ? `${(((data[data.length - 1].value - data[0].value) / data[0].value) * 100).toFixed(2)}%`
+            {displayData.length > 1 && displayData[0].value !== 0
+              ? `${(((displayData[displayData.length - 1].value - displayData[0].value) / displayData[0].value) * 100).toFixed(2)}%`
               : '0%'
             }
           </div>
