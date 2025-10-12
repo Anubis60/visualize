@@ -120,8 +120,8 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
         company: {
           id: company.id,
           title: company.title,
-          logo: company.logo,
-          bannerImage: company.bannerImage,
+          logo: typeof company.logo === 'string' ? company.logo : undefined,
+          bannerImage: typeof company.bannerImage === 'string' ? company.bannerImage : undefined,
         },
         memberships: allMemberships,
         plans: allPlans,

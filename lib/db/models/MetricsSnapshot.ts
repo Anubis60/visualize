@@ -59,9 +59,9 @@ export interface MetricsSnapshot {
       logo?: string
       bannerImage?: string
     }
-    memberships?: any[] // Full membership data from Whop API
-    plans?: any[] // Full plan data from Whop API
-    transactions?: any[] // Full transaction/payment data from Whop API
+    memberships?: unknown[] // Full membership data from Whop API
+    plans?: unknown[] // Full plan data from Whop API
+    transactions?: unknown[] // Full transaction/payment data from Whop API
   }
 }
 

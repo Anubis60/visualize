@@ -26,9 +26,10 @@ export async function GET(request: NextRequest) {
         console.log(`📦 Using cached snapshot from ${cachedSnapshot.timestamp.toISOString()}`)
 
         // Extract unique plans from cached data
-        const uniquePlans = (cachedSnapshot.rawData.plans || [])
-          .filter((plan: any) => plan.accessPass?.title)
-          .reduce((acc: any[], plan: any) => {
+        const cachedPlans = (cachedSnapshot.rawData.plans || []) as Plan[]
+        const uniquePlans = cachedPlans
+          .filter((plan) => plan.accessPass?.title)
+          .reduce((acc: Array<{ id: string; name: string }>, plan) => {
             const existing = acc.find(p => p.id === plan.id)
             if (!existing) {
               acc.push({
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
               })
             }
             return acc
-          }, [])
+          }, [] as Array<{ id: string; name: string }>)
 
         return NextResponse.json({
           mrr: cachedSnapshot.mrr,

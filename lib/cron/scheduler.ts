@@ -1,6 +1,6 @@
-import cron from 'node-cron'
+import cron, { ScheduledTask } from 'node-cron'
 
-let snapshotJob: cron.ScheduledTask | null = null
+let snapshotJob: ScheduledTask | null = null
 
 /**
  * Initialize the cron job scheduler
@@ -71,7 +71,6 @@ export function initializeCronJobs() {
           console.error('❌ Daily cron job failed:', error)
         }
       }, {
-        scheduled: true,
         timezone: "America/New_York"
       })
 
