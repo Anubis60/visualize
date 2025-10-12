@@ -16,8 +16,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Try to use cached snapshot data if available
+    // Try to use cached company data from companies collection (fastest)
     if (!forceRefresh) {
+      const cachedCompany = await companyRepository.findByWhopCompanyId(companyId)
+
+      if (cachedCompany) {
+        console.log(`📦 Using cached company data from companies collection`)
+        return NextResponse.json({
+          id: cachedCompany.companyId,
+          title: cachedCompany.title,
+          logo: cachedCompany.logo,
+          bannerImage: cachedCompany.rawData ? (cachedCompany.rawData as any).bannerImage : undefined,
+          cached: true,
+        })
+      }
+
+      // Fallback to snapshot data if company not in collection yet
       const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
 
       if (cachedSnapshot?.rawData?.company) {
@@ -36,7 +50,17 @@ export async function GET(request: NextRequest) {
 
     // Auto-register company in database for future snapshots
     try {
-      await companyRepository.registerCompany(companyId, company.title)
+      await companyRepository.registerCompany({
+        id: company.id,
+        title: company.title,
+        route: company.route || companyId,
+        logo: company.logo,
+        bannerImage: company.bannerImage,
+        industryType: company.industryType,
+        businessType: company.businessType,
+        userId: company.userId,
+        rawData: company, // Store full Whop company object
+      })
       console.log(`✅ Company ${companyId} (${company.title}) registered for snapshots`)
     } catch (error) {
       console.error('Failed to register company:', error)

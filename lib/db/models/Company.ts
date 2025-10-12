@@ -1,11 +1,19 @@
 import { ObjectId } from 'mongodb'
 
-// Simple company model - just for storing basic info
-// No authentication needed since Whop handles that
+// Company model - stores full Whop company data
 export interface Company {
   _id?: ObjectId
-  whopCompanyId: string // biz_xxxxx
-  companyName: string
+  companyId: string // biz_xxxxx (Whop company ID)
+  title: string
+  route: string
+  logo?: {
+    __typename?: string
+    sourceUrl?: string
+  } | null
+  industryType?: string
+  businessType?: string
+  userId?: string | null
+  rawData?: unknown // Full Whop company object
   settings?: {
     defaultCurrency: string
     timezone: string

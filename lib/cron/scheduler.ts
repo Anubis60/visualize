@@ -6,64 +6,54 @@ let snapshotJob: ScheduledTask | null = null
  * Initialize the cron job scheduler
  *
  * For Vercel/Serverless:
- * - Initial snapshot runs 10 seconds after startup (for immediate data on cold start)
  * - Daily snapshots handled by Vercel Cron (configured in vercel.json)
- * - Internal node-cron disabled since serverless functions don't persist
+ * - Cron jobs persist across deployments automatically
  *
  * For Local Development:
- * - Uncomment the node-cron section to test locally
+ * - Uses internal node-cron for testing
  */
 export function initializeCronJobs() {
   const isVercel = process.env.VERCEL === '1'
 
-  // For testing: Run 10 seconds after startup (works on both local and Vercel)
-  console.log('🕐 Scheduling initial snapshot for 10 seconds from now...')
+  console.log('🚀 Cron System Initialization')
+  console.log('================================')
 
-  setTimeout(async () => {
-    console.log('🕐 Initial snapshot triggered (10 seconds after startup)...')
-
-    try {
-      // Call the snapshot service directly instead of using fetch
-      // This avoids issues with localhost on Vercel
-      const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
-      await captureAllSnapshots()
-      console.log('✅ Initial snapshot completed successfully')
-    } catch (error) {
-      console.error('❌ Initial snapshot failed:', error)
-    }
-
-    // Only schedule internal cron if NOT on Vercel
-    // On Vercel, cron jobs are handled by vercel.json config
-    if (!isVercel) {
-      console.log('📋 Setting up internal node-cron for local development...')
-      snapshotJob = cron.schedule('0 5 * * *', async () => {
-        console.log('🕐 Daily cron job triggered: Starting snapshot capture...')
-
-        try {
-          const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
-          await captureAllSnapshots()
-          console.log('✅ Daily cron job completed successfully')
-        } catch (error) {
-          console.error('❌ Daily cron job failed:', error)
-        }
-      }, {
-        timezone: "America/New_York"
-      })
-
-      console.log('✅ Daily cron schedule activated: 5:00 AM (America/New_York)')
-    } else {
-      console.log('☁️  Running on Vercel - Daily snapshots handled by Vercel Cron (vercel.json)')
-      console.log('   Schedule: 5:00 AM UTC daily')
-    }
-  }, 10000) // Run after 10 seconds
-
-  console.log('✅ Cron jobs initialized successfully')
-  console.log('   - Initial snapshot: 10 seconds after startup')
   if (isVercel) {
-    console.log('   - Daily snapshot: Managed by Vercel Cron (persists across deployments)')
+    // On Vercel - use Vercel Cron (persistent across deployments)
+    console.log('☁️  Platform: Vercel')
+    console.log('📅 Active Cron Jobs:')
+    console.log('   1. Daily Snapshot Capture')
+    console.log('      - Path: /api/cron/snapshot')
+    console.log('      - Schedule: 5:00 AM UTC daily (0 5 * * *)')
+    console.log('      - Persists: ✅ Yes (survives all deployments)')
+    console.log('      - Managed by: vercel.json configuration')
+    console.log('')
+    console.log('💡 Snapshots capture automatically when users first visit their dashboard')
+    console.log('💡 Companies auto-register and are included in next daily snapshot')
   } else {
-    console.log('   - Daily snapshot: 5:00 AM (America/New_York) via node-cron')
+    // Local development - use node-cron
+    console.log('💻 Platform: Local Development')
+    console.log('📅 Setting up node-cron for testing...')
+
+    snapshotJob = cron.schedule('0 5 * * *', async () => {
+      console.log('🕐 Daily cron job triggered: Starting snapshot capture...')
+
+      try {
+        const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
+        await captureAllSnapshots()
+        console.log('✅ Daily cron job completed successfully')
+      } catch (error) {
+        console.error('❌ Daily cron job failed:', error)
+      }
+    }, {
+      timezone: "America/New_York"
+    })
+
+    console.log('✅ node-cron scheduled: 5:00 AM (America/New_York)')
   }
+
+  console.log('================================')
+  console.log('')
 }
 
 /**

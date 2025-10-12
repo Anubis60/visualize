@@ -18,6 +18,21 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       companyId,
     })
 
+    // Update company record in database with latest data
+    const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
+    await companyRepository.registerCompany({
+      id: company.id,
+      title: company.title,
+      route: company.route || companyId,
+      logo: company.logo,
+      bannerImage: company.bannerImage,
+      industryType: company.industryType,
+      businessType: company.businessType,
+      userId: company.userId,
+      rawData: company,
+    })
+    console.log('  ✅ Company data updated in database')
+
     // 2. Fetch ALL memberships using pagination
     console.log('  Fetching memberships...')
     let allMemberships: Membership[] = []
@@ -163,8 +178,8 @@ export async function captureAllSnapshots(): Promise<void> {
     console.log(`Found ${companies.length} registered compan${companies.length === 1 ? 'y' : 'ies'}`)
 
     for (const company of companies) {
-      await captureCompanySnapshot(company.whopCompanyId)
-      await companyRepository.updateLastSync(company.whopCompanyId)
+      await captureCompanySnapshot(company.companyId)
+      await companyRepository.updateLastSync(company.companyId)
     }
 
     console.log('✅ All snapshots captured successfully')

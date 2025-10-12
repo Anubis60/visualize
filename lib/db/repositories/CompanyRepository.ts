@@ -10,7 +10,7 @@ export class CompanyRepository {
 
   async findByWhopCompanyId(whopCompanyId: string): Promise<Company | null> {
     const collection = await this.getCollection()
-    return collection.findOne({ whopCompanyId })
+    return collection.findOne({ companyId: whopCompanyId })
   }
 
   async findById(id: string): Promise<Company | null> {
@@ -35,7 +35,7 @@ export class CompanyRepository {
   async update(whopCompanyId: string, updates: Partial<Company>): Promise<boolean> {
     const collection = await this.getCollection()
     const result = await collection.updateOne(
-      { whopCompanyId },
+      { companyId: whopCompanyId },
       {
         $set: {
           ...updates,
@@ -49,7 +49,7 @@ export class CompanyRepository {
   async updateLastSync(whopCompanyId: string): Promise<boolean> {
     const collection = await this.getCollection()
     const result = await collection.updateOne(
-      { whopCompanyId },
+      { companyId: whopCompanyId },
       {
         $set: {
           lastSyncAt: new Date(),
@@ -70,20 +70,37 @@ export class CompanyRepository {
 
   /**
    * Register a company (upsert - create if doesn't exist, update if exists)
+   * Stores full company data from Whop API
    */
-  async registerCompany(whopCompanyId: string, companyName: string): Promise<Company> {
+  async registerCompany(companyData: {
+    id: string
+    title: string
+    route: string
+    logo?: unknown
+    bannerImage?: unknown
+    industryType?: string
+    businessType?: string
+    userId?: string | null
+    rawData?: unknown
+  }): Promise<Company> {
     const collection = await this.getCollection()
 
     const now = new Date()
     const result = await collection.findOneAndUpdate(
-      { whopCompanyId },
+      { companyId: companyData.id },
       {
         $set: {
-          companyName,
+          title: companyData.title,
+          route: companyData.route,
+          logo: companyData.logo,
+          industryType: companyData.industryType,
+          businessType: companyData.businessType,
+          userId: companyData.userId,
+          rawData: companyData.rawData,
           updatedAt: now,
         },
         $setOnInsert: {
-          whopCompanyId,
+          companyId: companyData.id,
           createdAt: now,
         }
       },

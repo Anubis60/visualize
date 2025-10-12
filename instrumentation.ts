@@ -9,11 +9,7 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { initializeCronJobs } = await import('./lib/cron/scheduler')
 
-    console.log('🚀 Initializing server instrumentation...')
-
-    // Initialize cron jobs
+    // Initialize and display cron job information
     initializeCronJobs()
-
-    console.log('✅ Server instrumentation complete')
   }
 }
