@@ -22,11 +22,18 @@ export async function GET(request: NextRequest) {
 
       if (cachedCompany) {
         console.log(`📦 Using cached company data from companies collection`)
+
+        // Extract bannerImage from rawData if available
+        let bannerImage: unknown = undefined
+        if (cachedCompany.rawData && typeof cachedCompany.rawData === 'object' && 'bannerImage' in cachedCompany.rawData) {
+          bannerImage = (cachedCompany.rawData as { bannerImage?: unknown }).bannerImage
+        }
+
         return NextResponse.json({
           id: cachedCompany.companyId,
           title: cachedCompany.title,
           logo: cachedCompany.logo,
-          bannerImage: cachedCompany.rawData ? (cachedCompany.rawData as any).bannerImage : undefined,
+          bannerImage,
           cached: true,
         })
       }
@@ -56,9 +63,8 @@ export async function GET(request: NextRequest) {
         route: company.route || companyId,
         logo: company.logo,
         bannerImage: company.bannerImage,
-        industryType: company.industryType,
-        businessType: company.businessType,
-        userId: company.userId,
+        industryType: company.industryType || undefined,
+        businessType: company.businessType || undefined,
         rawData: company, // Store full Whop company object
       })
       console.log(`✅ Company ${companyId} (${company.title}) registered for snapshots`)
