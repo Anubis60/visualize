@@ -112,17 +112,6 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
             <h1 className="text-3xl font-bold text-gray-900">📊 Overview</h1>
             <p className="text-gray-600 mt-1">Your Whop analytics at a glance</p>
           </div>
-          {analytics.cached && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <div className="text-sm">
-                <div className="font-semibold text-green-900">Using Cached Data</div>
-                <div className="text-green-700">
-                  {analytics.snapshotDate && new Date(analytics.snapshotDate).toLocaleDateString()} snapshot
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
