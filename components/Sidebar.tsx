@@ -33,6 +33,9 @@ export function Sidebar({ companyId }: SidebarProps) {
           throw new Error('Failed to fetch company data')
         }
         const result = await response.json()
+        console.log('🔍 Company data received:', result)
+        console.log('🔍 Logo value:', result.logo)
+        console.log('🔍 Banner value:', result.bannerImage)
         setCompany(result)
       } catch (error) {
         console.error('Failed to fetch company data:', error)
@@ -52,7 +55,13 @@ export function Sidebar({ companyId }: SidebarProps) {
   }
 
   // Use banner image if available, otherwise fallback to logo
-  const companyImageUrl = getImageUrl(company?.bannerImage) || getImageUrl(company?.logo)
+  const bannerUrl = getImageUrl(company?.bannerImage)
+  const logoUrl = getImageUrl(company?.logo)
+  const companyImageUrl = bannerUrl || logoUrl
+
+  console.log('🖼️ Banner URL extracted:', bannerUrl)
+  console.log('🖼️ Logo URL extracted:', logoUrl)
+  console.log('🖼️ Final image URL:', companyImageUrl)
 
   return (
     <aside className={cn(
