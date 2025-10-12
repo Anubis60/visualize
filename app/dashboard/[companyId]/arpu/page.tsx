@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
+import { DataTable } from '@/components/charts/DataTable'
 import { DollarSign } from 'lucide-react'
 
 interface AnalyticsData {
@@ -116,6 +117,8 @@ export default function ARPUPage({ params }: { params: Promise<{ companyId: stri
           color="#10b981"
           label="ARPU"
         />
+
+        <DataTable data={chartData} label="ARPU" />
       </div>
 
       {/* Formula Explanation */}

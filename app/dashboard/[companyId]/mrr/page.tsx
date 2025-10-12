@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
+import { DataTable } from '@/components/charts/DataTable'
 import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
@@ -122,9 +123,11 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
         <MetricsChart
           data={chartData}
           chartType={chartType}
-          color="#3b82f6"
+          color="#8b5cf6"
           label="MRR"
         />
+
+        <DataTable data={chartData} label="MRR" />
       </div>
 
       {/* Info Panel */}

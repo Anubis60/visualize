@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
+import { DataTable } from '@/components/charts/DataTable'
 import { TrendingDown } from 'lucide-react'
 
 interface AnalyticsData {
@@ -116,6 +117,8 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
           color="#ef4444"
           label="Churn Rate (%)"
         />
+
+        <DataTable data={chartData} label="Churn Rate (%)" />
       </div>
 
       {/* Insights */}

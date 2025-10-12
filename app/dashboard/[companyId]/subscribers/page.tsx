@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
+import { DataTable } from '@/components/charts/DataTable'
 import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 import { Users } from 'lucide-react'
 
@@ -117,6 +118,8 @@ export default function SubscribersPage({ params }: { params: Promise<{ companyI
           color="#3b82f6"
           label="Active Subscribers"
         />
+
+        <DataTable data={chartData} label="Active Subscribers" />
       </div>
     </div>
   )

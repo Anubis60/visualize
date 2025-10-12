@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
+import { DataTable } from '@/components/charts/DataTable'
 import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
@@ -114,6 +115,8 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
           color="#10b981"
           label="ARR"
         />
+
+        <DataTable data={chartData} label="ARR" />
       </div>
 
       {/* Info Panel */}
