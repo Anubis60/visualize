@@ -14,7 +14,6 @@ export default function DashboardLayout({
 }) {
   const { companyId } = use(params)
   const collapsed = useSidebarStore(state => state.collapsed)
-  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -23,14 +22,14 @@ export default function DashboardLayout({
     async function checkSubscription() {
       try {
         // Get userId from Whop's window context (provided by Whop SDK)
-        const whopUserId = (window as any).__WHOP__?.userId || companyId
+        const whopContext = (window as typeof window & { __WHOP__?: { userId?: string } }).__WHOP__
+        const whopUserId = whopContext?.userId || companyId
         setUserId(whopUserId)
 
         // Check subscription status by companyId
         const subscriptionResponse = await fetch(`/api/subscription/check?companyId=${companyId}`)
         if (subscriptionResponse.ok) {
-          const subscriptionData = await subscriptionResponse.json()
-          setSubscriptionStatus(subscriptionData)
+          const subscriptionData = await subscriptionResponse.json() as { hasAccess: boolean }
 
           // Show modal if user doesn't have access
           if (!subscriptionData.hasAccess) {

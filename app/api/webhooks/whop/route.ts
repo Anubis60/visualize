@@ -21,6 +21,28 @@ import { Collections } from '@/lib/models';
 // Disable body parsing so we can verify the signature
 export const runtime = 'nodejs';
 
+interface WhopMembership {
+  id: string;
+  user?: string;
+  user_id?: string;
+  userId?: string;
+  product?: string;
+  product_id?: string;
+  plan?: string;
+  plan_id?: string;
+  status?: string;
+  metadata?: {
+    email?: string;
+    [key: string]: unknown;
+  };
+  renewal_period_start?: number;
+  renewal_period_end?: number;
+  valid_from?: number;
+  expires_at?: number;
+  cancel_at_period_end?: boolean;
+  [key: string]: unknown;
+}
+
 async function verifyWhopSignature(payload: string, signature: string | null) {
   const secret = process.env.WHOP_WEBHOOK_SECRET;
 
@@ -103,7 +125,7 @@ export async function POST(request: Request) {
           received: true,
           note: 'Test event received but not processed due to invalid signature. Real events will be processed.'
         });
-      } catch (e) {
+      } catch {
         return NextResponse.json(
           { error: 'Invalid signature' },
           { status: 401 }
@@ -168,7 +190,7 @@ export async function POST(request: Request) {
  * Handle membership_went_valid event
  * Fired when a user's subscription becomes active (trial started or payment succeeded)
  */
-async function handleMembershipWentValid(membership: any) {
+async function handleMembershipWentValid(membership: WhopMembership) {
   console.log('Processing membership_went_valid:', membership.id);
   console.log('Full membership data:', JSON.stringify(membership, null, 2));
 
@@ -262,7 +284,7 @@ async function handleMembershipWentValid(membership: any) {
  * Handle membership_went_invalid event
  * Fired when a user's subscription expires or is cancelled
  */
-async function handleMembershipWentInvalid(membership: any) {
+async function handleMembershipWentInvalid(membership: WhopMembership) {
   console.log('Processing membership_went_invalid:', membership.id);
 
   if (!clientPromise) {
@@ -313,7 +335,7 @@ async function handleMembershipWentInvalid(membership: any) {
  * Handle membership_metadata_updated and membership_cancel_at_period_end_changed events
  * Fired when membership details change (e.g., cancellation scheduled)
  */
-async function handleMembershipUpdated(membership: any) {
+async function handleMembershipUpdated(membership: WhopMembership) {
   console.log('Processing membership update:', membership.id);
 
   if (!clientPromise) {

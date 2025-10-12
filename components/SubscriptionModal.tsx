@@ -3,12 +3,11 @@
 import { useState } from 'react'
 
 interface SubscriptionModalProps {
-  onClose?: () => void
   userId: string
   companyId: string
 }
 
-export default function SubscriptionModal({ onClose, userId, companyId }: SubscriptionModalProps) {
+export default function SubscriptionModal({ userId, companyId }: SubscriptionModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

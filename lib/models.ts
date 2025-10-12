@@ -58,10 +58,16 @@ export const Collections = {
  * }
  */
 
+interface SubscriptionData {
+  subscriptionStatus?: string;
+  trialEndsAt?: Date | string | null;
+  subscriptionEndsAt?: Date | string | null;
+}
+
 /**
  * Check if user has active subscription
  */
-export function hasActiveSubscription(user: any): boolean {
+export function hasActiveSubscription(user: SubscriptionData): boolean {
   if (!user) return false;
 
   const now = new Date();
@@ -88,7 +94,7 @@ export function hasActiveSubscription(user: any): boolean {
 /**
  * Get user subscription info
  */
-export function getSubscriptionInfo(user: any): {
+export function getSubscriptionInfo(user: SubscriptionData): {
   hasAccess: boolean;
   status: string;
   isTrialing: boolean;
