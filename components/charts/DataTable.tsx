@@ -10,19 +10,6 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
     return null
   }
 
-  // Group data by month/year for better organization
-  const groupedData = data.reduce((acc, item) => {
-    const [year, month] = item.date.split('-')
-    const key = `${year}-${month}`
-    if (!acc[key]) {
-      acc[key] = []
-    }
-    acc[key].push(item)
-    return acc
-  }, {} as Record<string, typeof data>)
-
-  const months = Object.keys(groupedData).sort().reverse() // Most recent first
-
   return (
     <div className="mt-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Breakdown</h3>

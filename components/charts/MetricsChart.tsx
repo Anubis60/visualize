@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, AreaChart } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Area, AreaChart } from 'recharts'
 import { ChartType } from './ChartControls'
 
 interface MetricsChartProps {
@@ -10,8 +10,14 @@ interface MetricsChartProps {
   label?: string
 }
 
+interface TooltipProps {
+  active?: boolean
+  payload?: Array<{ value: number }>
+  label?: string
+}
+
 // Custom tooltip with modern glassmorphism design
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl px-4 py-3 shadow-2xl shadow-purple-500/20">
