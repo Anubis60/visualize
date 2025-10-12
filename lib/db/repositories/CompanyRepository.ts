@@ -86,19 +86,30 @@ export class CompanyRepository {
     const collection = await this.getCollection()
 
     const now = new Date()
+
+    // Build the update object with proper types
+    const updateData: Record<string, unknown> = {
+      title: companyData.title,
+      route: companyData.route,
+      industryType: companyData.industryType,
+      businessType: companyData.businessType,
+      userId: companyData.userId,
+      rawData: companyData.rawData,
+      updatedAt: now,
+    }
+
+    // Add logo and bannerImage if provided
+    if (companyData.logo !== undefined) {
+      updateData.logo = companyData.logo
+    }
+    if (companyData.bannerImage !== undefined) {
+      updateData.bannerImage = companyData.bannerImage
+    }
+
     const result = await collection.findOneAndUpdate(
       { companyId: companyData.id },
       {
-        $set: {
-          title: companyData.title,
-          route: companyData.route,
-          logo: companyData.logo,
-          industryType: companyData.industryType,
-          businessType: companyData.businessType,
-          userId: companyData.userId,
-          rawData: companyData.rawData,
-          updatedAt: now,
-        },
+        $set: updateData,
         $setOnInsert: {
           companyId: companyData.id,
           createdAt: now,
