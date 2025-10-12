@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const companyId = searchParams.get('company_id')
+    const forceRefresh = searchParams.get('force_refresh') === 'true'
 
     if (!companyId) {
       return NextResponse.json(
@@ -12,6 +14,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Try to use cached snapshot data if available
+    if (!forceRefresh) {
+      const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
+
+      if (cachedSnapshot?.rawData?.transactions) {
+        console.log(`📦 Using cached transactions data from snapshot`)
+        return NextResponse.json({
+          data: cachedSnapshot.rawData.transactions,
+          cached: true,
+        })
+      }
+    }
+
+    // Fetch from API if no cache or force refresh
     const url = new URL("https://api.whop.com/api/v1/payments")
     url.searchParams.set("company_id", companyId)
 
@@ -24,7 +40,10 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
     console.log(JSON.stringify(data, null, 2))
 
-    return NextResponse.json(data)
+    return NextResponse.json({
+      ...data,
+      cached: false,
+    })
   } catch (error) {
     console.error('❌ Error fetching transactions:', error)
     return NextResponse.json(

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { whopClient } from '@/lib/whop/client'
+import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const companyId = searchParams.get('company_id')
+    const forceRefresh = searchParams.get('force_refresh') === 'true'
 
     if (!companyId) {
       return NextResponse.json(
@@ -13,11 +15,27 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Try to use cached snapshot data if available
+    if (!forceRefresh) {
+      const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
+
+      if (cachedSnapshot?.rawData?.memberships) {
+        console.log(`📦 Using cached memberships data from snapshot`)
+        return NextResponse.json({
+          data: cachedSnapshot.rawData.memberships,
+          count: cachedSnapshot.rawData.memberships.length,
+          cached: true,
+        })
+      }
+    }
+
+    // Fetch from API if no cache or force refresh
     const memberships = await whopClient.getAllMemberships(companyId)
 
     return NextResponse.json({
       data: memberships,
-      count: memberships.length
+      count: memberships.length,
+      cached: false,
     })
   } catch (error) {
     console.error('Error fetching memberships:', error)

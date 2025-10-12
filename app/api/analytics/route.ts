@@ -9,12 +9,52 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const companyId = searchParams.get('company_id')
+    const forceRefresh = searchParams.get('force_refresh') === 'true'
 
     if (!companyId) {
       return NextResponse.json(
         { error: 'Company ID is required. Pass it as ?company_id=YOUR_ID' },
         { status: 400 }
       )
+    }
+
+    // Try to use cached snapshot data if available and not forcing refresh
+    if (!forceRefresh) {
+      const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
+
+      if (cachedSnapshot?.rawData) {
+        console.log(`📦 Using cached snapshot from ${cachedSnapshot.timestamp.toISOString()}`)
+
+        // Extract unique plans from cached data
+        const uniquePlans = (cachedSnapshot.rawData.plans || [])
+          .filter((plan: any) => plan.accessPass?.title)
+          .reduce((acc: any[], plan: any) => {
+            const existing = acc.find(p => p.id === plan.id)
+            if (!existing) {
+              acc.push({
+                id: plan.id,
+                name: plan.accessPass?.title || 'Unknown Plan'
+              })
+            }
+            return acc
+          }, [])
+
+        return NextResponse.json({
+          mrr: cachedSnapshot.mrr,
+          arr: cachedSnapshot.arr,
+          arpu: cachedSnapshot.arpu,
+          subscribers: cachedSnapshot.subscribers,
+          activeUniqueSubscribers: cachedSnapshot.activeUniqueSubscribers,
+          plans: uniquePlans,
+          timestamp: cachedSnapshot.timestamp.toISOString(),
+          cached: true,
+          snapshotDate: cachedSnapshot.date.toISOString(),
+        })
+      }
+
+      console.log('📡 No cached snapshot available, fetching from API...')
+    } else {
+      console.log('🔄 Force refresh requested, fetching from API...')
     }
 
     // Fetch ALL memberships using Whop SDK with pagination

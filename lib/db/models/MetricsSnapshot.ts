@@ -50,6 +50,19 @@ export interface MetricsSnapshot {
     activeMemberships: number
     plansCount: number
   }
+
+  // Raw data cache (for faster loading without API calls)
+  rawData?: {
+    company?: {
+      id: string
+      title: string
+      logo?: string
+      bannerImage?: string
+    }
+    memberships?: any[] // Full membership data from Whop API
+    plans?: any[] // Full plan data from Whop API
+    transactions?: any[] // Full transaction/payment data from Whop API
+  }
 }
 
 export interface DailyMetrics {

@@ -102,6 +102,38 @@ export class MetricsRepository {
   }
 
   /**
+   * Get the most recent snapshot with raw data (for fast loading without API calls)
+   * Returns null if no snapshot exists or if the snapshot doesn't have raw data
+   */
+  async getLatestSnapshotWithRawData(companyId: string): Promise<MetricsSnapshot | null> {
+    const collection = await this.getCollection()
+    return collection
+      .find({
+        companyId,
+        'rawData': { $exists: true }
+      })
+      .sort({ date: -1 })
+      .limit(1)
+      .next()
+  }
+
+  /**
+   * Check if a fresh snapshot exists (less than 24 hours old)
+   */
+  async hasFreshSnapshot(companyId: string): Promise<boolean> {
+    const collection = await this.getCollection()
+    const oneDayAgo = new Date()
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1)
+
+    const count = await collection.countDocuments({
+      companyId,
+      timestamp: { $gte: oneDayAgo }
+    })
+
+    return count > 0
+  }
+
+  /**
    * Get daily metrics formatted for charts
    */
   async getDailyMetrics(companyId: string, days: number = 30): Promise<DailyMetrics[]> {
