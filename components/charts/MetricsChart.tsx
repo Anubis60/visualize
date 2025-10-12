@@ -46,16 +46,18 @@ export function MetricsChart({ data, chartType, color = '#8b5cf6', label = 'Valu
 
   return (
     <div className="relative">
-      {/* Subtle glow effect behind chart */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 rounded-3xl blur-3xl -z-10" />
+      {/* Futuristic hologram glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 to-blue-500/10 rounded-3xl blur-3xl -z-10" />
 
       <ResponsiveContainer width="100%" height={400}>
         {chartType === 'line' ? (
           <AreaChart data={data}>
             <defs>
+              {/* Hologram gradient - light blue with transparency */}
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.25}/>
+                <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.15}/>
+                <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.05}/>
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -78,21 +80,21 @@ export function MetricsChart({ data, chartType, color = '#8b5cf6', label = 'Valu
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: color, strokeWidth: 2, strokeDasharray: '5 5' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#000000', strokeWidth: 2, strokeDasharray: '5 5' }} />
             <Area
               type="monotone"
               dataKey="value"
-              stroke={color}
-              strokeWidth={3}
+              stroke="#000000"
+              strokeWidth={2.5}
               fill={`url(#${gradientId})`}
               name={label}
-              dot={false}
+              dot={{ fill: '#000000', r: 3, strokeWidth: 0 }}
               activeDot={{
                 r: 6,
-                fill: color,
+                fill: '#000000',
                 stroke: '#fff',
-                strokeWidth: 3,
-                filter: 'drop-shadow(0 4px 6px rgba(139, 92, 246, 0.4))'
+                strokeWidth: 2,
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
               }}
             />
           </AreaChart>
