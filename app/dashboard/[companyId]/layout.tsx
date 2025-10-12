@@ -2,7 +2,8 @@
 
 import { Sidebar } from '@/components/Sidebar'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
-import { use } from 'react'
+import SubscriptionModal from '@/components/SubscriptionModal'
+import { use, useEffect, useState } from 'react'
 
 export default function DashboardLayout({
   children,
@@ -13,13 +14,64 @@ export default function DashboardLayout({
 }) {
   const { companyId } = use(params)
   const collapsed = useSidebarStore(state => state.collapsed)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null)
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        // Get userId from Whop's window context (provided by Whop SDK)
+        const whopUserId = (window as any).__WHOP__?.userId || companyId
+        setUserId(whopUserId)
+
+        // Check subscription status by companyId
+        const subscriptionResponse = await fetch(`/api/subscription/check?companyId=${companyId}`)
+        if (subscriptionResponse.ok) {
+          const subscriptionData = await subscriptionResponse.json()
+          setSubscriptionStatus(subscriptionData)
+
+          // Show modal if user doesn't have access
+          if (!subscriptionData.hasAccess) {
+            setShowSubscriptionModal(true)
+          }
+        }
+      } catch (err) {
+        console.error('Error checking subscription:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkSubscription()
+  }, [companyId])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar companyId={companyId} />
-      <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-56'}`}>
-        {children}
-      </main>
+      {/* Subscription Modal - shows when user doesn't have access */}
+      {showSubscriptionModal && userId && (
+        <SubscriptionModal userId={userId} companyId={companyId} />
+      )}
+
+      {/* Main Dashboard - blurred if no subscription */}
+      <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
+        <Sidebar companyId={companyId} />
+        <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-56'}`}>
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
