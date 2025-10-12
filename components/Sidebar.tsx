@@ -64,20 +64,29 @@ export function Sidebar({ companyId }: SidebarProps) {
         "border-b border-slate-800 flex flex-col items-center justify-center",
         collapsed ? "p-3" : "p-4"
       )}>
-        {companyImageUrl ? (
+        {company ? (
           <>
-            <div className={cn(
-              "relative overflow-hidden rounded-lg",
-              collapsed ? "w-10 h-10" : "w-full h-24"
-            )}>
-              <Image
-                src={companyImageUrl}
-                alt={company?.title || "Company"}
-                fill
-                className="object-cover"
-              />
-            </div>
-            {!collapsed && company?.title && (
+            {companyImageUrl ? (
+              <div className={cn(
+                "relative overflow-hidden rounded-lg",
+                collapsed ? "w-10 h-10" : "w-full h-24"
+              )}>
+                <Image
+                  src={companyImageUrl}
+                  alt={company.title || "Company"}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className={cn(
+                "bg-slate-800 rounded-lg flex items-center justify-center",
+                collapsed ? "w-10 h-10" : "w-full h-24"
+              )}>
+                <span className="text-slate-400 text-2xl">{company.title?.[0] || "C"}</span>
+              </div>
+            )}
+            {!collapsed && company.title && (
               <h2 className="mt-2 text-sm font-semibold text-center text-white truncate w-full px-2">
                 {company.title}
               </h2>
