@@ -66,20 +66,42 @@ export class WhopClient {
 
   async getAllMemberships(companyId: string): Promise<Membership[]> {
     const allMemberships: Membership[] = []
-    let page = 1
     let hasMore = true
+    let cursor: string | undefined = undefined
 
     while (hasMore) {
-      const result = await this.getMemberships({
-        company_id: companyId,
-        page,
-        per: 50
+      const url = new URL('https://api.whop.com/api/v1/memberships')
+      url.searchParams.set('company_id', companyId)
+      url.searchParams.set('first', '100')
+      if (cursor) {
+        url.searchParams.set('after', cursor)
+      }
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
       })
 
-      allMemberships.push(...result.data)
+      if (!response.ok) {
+        throw new Error(`Whop API Error: ${response.status} ${response.statusText}`)
+      }
 
-      hasMore = result.pagination.current_page < result.pagination.total_pages
-      page++
+      const data = await response.json()
+      const memberships = data.data || []
+
+      if (memberships.length === 0) {
+        hasMore = false
+      } else {
+        allMemberships.push(...memberships)
+
+        const pageInfo = data.page_info
+        if (pageInfo && pageInfo.has_next_page && pageInfo.end_cursor) {
+          cursor = pageInfo.end_cursor
+        } else {
+          hasMore = false
+        }
+      }
     }
 
     return allMemberships
