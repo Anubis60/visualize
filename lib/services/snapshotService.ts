@@ -79,17 +79,19 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       if (!hasNextPlanPage) break
     }
 
-    // 4. Fetch ALL payments using pagination
+    // 4. Fetch ALL payments using cursor-based pagination
     console.log('  Fetching payments...')
     let allPayments: Payment[] = []
-    let page = 1
     let hasMorePayments = true
+    let paymentCursor: string | undefined = undefined
 
     while (hasMorePayments) {
       const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
       paymentsUrl.searchParams.set("company_id", companyId)
-      paymentsUrl.searchParams.set("page", page.toString())
-      paymentsUrl.searchParams.set("per", "100") // Max per page
+      paymentsUrl.searchParams.set("first", "100") // Fetch 100 at a time
+      if (paymentCursor) {
+        paymentsUrl.searchParams.set("after", paymentCursor)
+      }
 
       const paymentsResponse = await fetch(paymentsUrl, {
         headers: {
@@ -104,14 +106,13 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
         hasMorePayments = false
       } else {
         allPayments = [...allPayments, ...payments]
-        console.log(`    Fetched ${payments.length} payments (page ${page}, total so far: ${allPayments.length})`)
-        page++
+        console.log(`    Fetched ${payments.length} payments (total so far: ${allPayments.length})`)
 
-        // Check if there's a next page indicator in the response
-        if (paymentsData.pagination && !paymentsData.pagination.has_more) {
-          hasMorePayments = false
-        } else if (payments.length < 100) {
-          // If we got less than the page size, we're on the last page
+        // Check if there's a next page using page_info
+        const pageInfo = paymentsData.page_info
+        if (pageInfo && pageInfo.has_next_page && pageInfo.end_cursor) {
+          paymentCursor = pageInfo.end_cursor
+        } else {
           hasMorePayments = false
         }
       }
