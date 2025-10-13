@@ -53,18 +53,22 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         console.log('👥 Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
 
-        // Fetch transactions in background (don't wait for it)
-        console.log('🔄 Starting transactions fetch...')
-        fetch(`/api/transactions?company_id=${companyId}`)
+        // Fetch debug raw data in background for analysis
+        console.log('🔍 Starting debug raw data fetch...')
+        fetch(`/api/debug/raw-data?company_id=${companyId}`)
           .then(res => {
-            console.log('📡 Transactions response status:', res.status)
+            console.log('📡 Debug raw data response status:', res.status)
             return res.json()
           })
-          .then(transactionData => {
-            console.log('✅ Transactions fetched successfully:', transactionData.total, 'receipts')
+          .then(debugData => {
+            console.log('✅ RAW DEBUG DATA - Company:', debugData.rawResponses?.company)
+            console.log('✅ RAW DEBUG DATA - Memberships:', debugData.rawResponses?.memberships)
+            console.log('✅ RAW DEBUG DATA - Plans:', debugData.rawResponses?.plans)
+            console.log('✅ RAW DEBUG DATA - Payments:', debugData.rawResponses?.payments)
+            console.log('✅ RAW DEBUG DATA - Available SDK Methods:', debugData.availableSdkMethods)
           })
           .catch(err => {
-            console.error('❌ Error fetching transactions:', err)
+            console.error('❌ Error fetching debug raw data:', err)
           })
       } catch (err) {
         console.error('❌ Dashboard: Error fetching analytics:', err)
