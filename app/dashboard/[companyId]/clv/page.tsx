@@ -96,8 +96,8 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Average CLV Over Time</h2>
         <MetricsChart
           data={chartData}
-          dataKey="value"
-          title="CLV"
+          chartType="line"
+          label="CLV"
           color="#8b5cf6"
         />
       </div>

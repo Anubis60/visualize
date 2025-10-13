@@ -106,8 +106,8 @@ export default function PaymentsPage({ params }: { params: Promise<{ companyId: 
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Successful Payments Over Time</h2>
         <MetricsChart
           data={chartData}
-          dataKey="value"
-          title="Successful Payments"
+          chartType="line"
+          label="Successful Payments"
           color="#10b981"
         />
       </div>

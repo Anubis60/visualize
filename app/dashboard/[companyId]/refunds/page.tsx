@@ -98,8 +98,8 @@ export default function RefundsPage({ params }: { params: Promise<{ companyId: s
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Refunds Over Time</h2>
         <MetricsChart
           data={chartData}
-          dataKey="value"
-          title="Refunds"
+          chartType="line"
+          label="Refunds"
           color="#ef4444"
         />
       </div>

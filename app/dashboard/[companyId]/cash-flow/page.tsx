@@ -110,8 +110,8 @@ export default function CashFlowPage({ params }: { params: Promise<{ companyId: 
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Net Cash Flow Over Time</h2>
         <MetricsChart
           data={chartData}
-          dataKey="value"
-          title="Net Cash Flow"
+          chartType="line"
+          label="Net Cash Flow"
           color="#3b82f6"
         />
       </div>

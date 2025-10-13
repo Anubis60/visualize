@@ -104,8 +104,8 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Trial Signups Over Time</h2>
         <MetricsChart
           data={chartData}
-          dataKey="value"
-          title="Trials"
+          chartType="line"
+          label="Trials"
           color="#8b5cf6"
         />
       </div>
