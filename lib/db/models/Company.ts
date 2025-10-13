@@ -19,4 +19,6 @@ export interface Company {
   createdAt: Date
   updatedAt: Date
   lastSyncAt?: Date
+  backfillCompleted?: boolean // Track if initial 365-day historical data capture is complete
+  backfillCompletedAt?: Date // When the backfill was completed
 }

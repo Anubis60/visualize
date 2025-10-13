@@ -69,6 +69,45 @@ export class CompanyRepository {
   }
 
   /**
+   * Mark company's initial backfill as completed
+   */
+  async markBackfillCompleted(whopCompanyId: string): Promise<boolean> {
+    const collection = await this.getCollection()
+    const result = await collection.updateOne(
+      { companyId: whopCompanyId },
+      {
+        $set: {
+          backfillCompleted: true,
+          backfillCompletedAt: new Date(),
+          updatedAt: new Date(),
+        }
+      }
+    )
+    return result.modifiedCount > 0
+  }
+
+  /**
+   * Get companies that need initial backfill
+   */
+  async getCompaniesNeedingBackfill(): Promise<Company[]> {
+    const collection = await this.getCollection()
+    return collection.find({
+      $or: [
+        { backfillCompleted: { $exists: false } },
+        { backfillCompleted: false }
+      ]
+    }).toArray()
+  }
+
+  /**
+   * Get companies that have completed backfill
+   */
+  async getCompaniesWithBackfill(): Promise<Company[]> {
+    const collection = await this.getCollection()
+    return collection.find({ backfillCompleted: true }).toArray()
+  }
+
+  /**
    * Register a company (upsert - create if doesn't exist, update if exists)
    * Stores full company data from Whop API
    */

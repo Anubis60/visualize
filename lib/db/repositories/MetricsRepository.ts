@@ -23,18 +23,19 @@ export class MetricsRepository {
   /**
    * Get or create today's snapshot
    * If a snapshot already exists for today, update it
+   * Optionally accepts a specific date for backfilling historical data
    */
-  async upsertDailySnapshot(companyId: string, snapshot: Omit<MetricsSnapshot, '_id' | 'companyId' | 'date' | 'timestamp'>): Promise<void> {
+  async upsertDailySnapshot(companyId: string, snapshot: Omit<MetricsSnapshot, '_id' | 'companyId' | 'date' | 'timestamp'>, snapshotDate?: Date): Promise<void> {
     const collection = await this.getCollection()
 
-    // Get start of day in UTC
-    const today = new Date()
-    today.setUTCHours(0, 0, 0, 0)
+    // Use provided date or default to today
+    const targetDate = snapshotDate ? new Date(snapshotDate) : new Date()
+    targetDate.setUTCHours(0, 0, 0, 0)
 
     await collection.updateOne(
       {
         companyId,
-        date: today,
+        date: targetDate,
       },
       {
         $set: {
@@ -43,7 +44,7 @@ export class MetricsRepository {
         },
         $setOnInsert: {
           companyId,
-          date: today,
+          date: targetDate,
         }
       },
       { upsert: true }

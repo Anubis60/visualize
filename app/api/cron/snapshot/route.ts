@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { captureAllSnapshots } from '@/lib/services/snapshotService'
+import { captureCompanySnapshot } from '@/lib/services/snapshotService'
 
 /**
  * Cron job endpoint to capture daily snapshots
@@ -26,12 +26,29 @@ export async function GET(request: NextRequest) {
 
     console.log('Cron job triggered: Starting daily snapshot capture...')
 
-    await captureAllSnapshots()
+    const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
+
+    // Only capture snapshots for companies that have completed initial backfill
+    const companies = await companyRepository.getCompaniesWithBackfill()
+
+    if (companies.length === 0) {
+      console.log('No companies with completed backfill. Run /api/cron/backfill first.')
+      return NextResponse.json({
+        success: true,
+        message: 'No companies ready for daily snapshots',
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    console.log(`Capturing daily snapshots for ${companies.length} compan${companies.length === 1 ? 'y' : 'ies'}`)
+
+    // Capture today's snapshot for each company
+    for (const company of companies) {
+      await captureCompanySnapshot(company.companyId)
+      await companyRepository.updateLastSync(company.companyId)
+    }
 
     // Log all raw data for verification
-    const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
-    const companies = await companyRepository.getAllCompanies()
-
     for (const company of companies) {
       console.log('\n=== RAW DATA FOR COMPANY:', company.companyId, '===')
 
