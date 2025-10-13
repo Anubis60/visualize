@@ -28,6 +28,40 @@ export async function GET(request: NextRequest) {
 
     await captureAllSnapshots()
 
+    // Log all raw data for verification
+    const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
+    const companies = await companyRepository.getAllCompanies()
+
+    for (const company of companies) {
+      console.log('\n=== RAW DATA FOR COMPANY:', company.companyId, '===')
+
+      // Fetch and log raw memberships
+      console.log('\n--- RAW MEMBERSHIPS (ALL) ---')
+      const membershipsUrl = `https://api.whop.com/api/v1/memberships?company_id=${company.companyId}`
+      const membershipsRes = await fetch(membershipsUrl, {
+        headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
+      })
+      const membershipsData = await membershipsRes.json()
+      console.log(JSON.stringify(membershipsData, null, 2))
+
+      // Fetch and log raw transactions
+      console.log('\n--- RAW TRANSACTIONS/PAYMENTS (ALL) ---')
+      const paymentsUrl = `https://api.whop.com/api/v1/payments?company_id=${company.companyId}`
+      const paymentsRes = await fetch(paymentsUrl, {
+        headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
+      })
+      const paymentsData = await paymentsRes.json()
+      console.log(JSON.stringify(paymentsData, null, 2))
+
+      // Fetch and log historical data
+      console.log('\n--- HISTORICAL DATA (1 YEAR BACK - ALL) ---')
+      const { metricsRepository } = await import('@/lib/db/repositories/MetricsRepository')
+      const historicalData = await metricsRepository.getDailyMetrics(company.companyId, 365)
+      console.log(JSON.stringify(historicalData, null, 2))
+
+      console.log('\n=== END RAW DATA FOR', company.companyId, '===\n')
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Snapshots captured successfully',
