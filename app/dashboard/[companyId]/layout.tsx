@@ -1,6 +1,7 @@
 'use client'
 
 import { Sidebar } from '@/components/Sidebar'
+import { DashboardHeader } from '@/components/DashboardHeader'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 import SubscriptionModal from '@/components/SubscriptionModal'
 import { use, useEffect, useState } from 'react'
@@ -67,9 +68,12 @@ export default function DashboardLayout({
       {/* Main Dashboard - blurred if no subscription */}
       <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
         <Sidebar companyId={companyId} />
-        <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-48'}`}>
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col">
+          <DashboardHeader companyId={companyId} />
+          <main className={`flex-1 transition-all duration-300 pt-20 ${collapsed ? 'ml-16' : 'ml-48'}`}>
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   )

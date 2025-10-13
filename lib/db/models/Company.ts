@@ -9,7 +9,7 @@ export interface Company {
   logo?: {
     __typename?: string
     sourceUrl?: string
-  } | null
+  } | string | null
   industryType?: string
   businessType?: string
   userId?: string | null

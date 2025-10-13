@@ -2,119 +2,30 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
-import { useEffect, useState } from 'react'
 
 interface SidebarProps {
   companyId: string
-}
-
-interface CompanyData {
-  title: string
-  logo?: string | { sourceUrl?: string | null; __typename?: string } | null
-  bannerImage?: string | { sourceUrl?: string | null; __typename?: string } | null
-  cached?: boolean
 }
 
 export function Sidebar({ companyId }: SidebarProps) {
   const pathname = usePathname()
   const collapsed = useSidebarStore(state => state.collapsed)
   const setCollapsed = useSidebarStore(state => state.setCollapsed)
-  const [company, setCompany] = useState<CompanyData | null>(null)
-
-  useEffect(() => {
-    const fetchCompany = async () => {
-      try {
-        const response = await fetch(`/api/company?company_id=${companyId}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch company data')
-        }
-        const result = await response.json()
-        console.log('🔍 Company data received:', result)
-        console.log('🔍 Logo value:', result.logo)
-        console.log('🔍 Banner value:', result.bannerImage)
-        setCompany(result)
-      } catch (error) {
-        console.error('Failed to fetch company data:', error)
-      }
-    }
-    fetchCompany()
-  }, [companyId])
 
   const isActive = (path: string) => pathname === path
-
-  // Helper function to extract URL from logo/banner (handles both string and object formats)
-  const getImageUrl = (image: string | { sourceUrl?: string | null } | null | undefined): string | null => {
-    if (!image) return null
-    if (typeof image === 'string') return image
-    if (typeof image === 'object' && image.sourceUrl) return image.sourceUrl
-    return null
-  }
-
-  // Use banner image if available, otherwise fallback to logo
-  const bannerUrl = getImageUrl(company?.bannerImage)
-  const logoUrl = getImageUrl(company?.logo)
-  const companyImageUrl = bannerUrl || logoUrl
-
-  console.log('🖼️ Banner URL extracted:', bannerUrl)
-  console.log('🖼️ Logo URL extracted:', logoUrl)
-  console.log('🖼️ Final image URL:', companyImageUrl)
 
   return (
     <aside className={cn(
       "bg-slate-900 text-white h-screen fixed left-0 top-0 flex flex-col transition-all duration-300 z-20",
       collapsed ? "w-16" : "w-48"
     )}>
-      {/* Header */}
-      <div className={cn(
-        "border-b border-slate-800 flex flex-col items-center justify-center",
-        collapsed ? "p-3" : "p-4"
-      )}>
-        {company ? (
-          <>
-            {companyImageUrl ? (
-              <div className={cn(
-                "relative overflow-hidden rounded-lg",
-                collapsed ? "w-10 h-10" : "w-full h-24"
-              )}>
-                <Image
-                  src={companyImageUrl}
-                  alt={company.title || "Company"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className={cn(
-                "bg-slate-800 rounded-lg flex items-center justify-center",
-                collapsed ? "w-10 h-10" : "w-full h-24"
-              )}>
-                <span className="text-slate-400 text-2xl">{company.title?.[0] || "C"}</span>
-              </div>
-            )}
-            {!collapsed && company.title && (
-              <h2 className="mt-2 text-sm font-semibold text-center text-white truncate w-full px-2">
-                {company.title}
-              </h2>
-            )}
-          </>
-        ) : (
-          <div className={cn(
-            "bg-slate-800 rounded-lg flex items-center justify-center",
-            collapsed ? "w-10 h-10" : "w-full h-24"
-          )}>
-            <span className="text-slate-400 text-xs">Loading...</span>
-          </div>
-        )}
-      </div>
-
       {/* Toggle Button */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 bg-slate-800 hover:bg-slate-700 text-white rounded-full p-1.5 shadow-lg transition-colors z-10"
+        className="absolute -right-3 top-6 bg-slate-800 hover:bg-slate-700 text-white rounded-full p-1.5 shadow-lg transition-colors z-10"
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </button>

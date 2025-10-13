@@ -76,8 +76,10 @@ export class CompanyRepository {
     id: string
     title: string
     route: string
-    logo?: unknown
-    bannerImage?: unknown
+    logo?: {
+      __typename?: string
+      sourceUrl?: string
+    } | string | null
     industryType?: string
     businessType?: string
     userId?: string | null
@@ -98,12 +100,9 @@ export class CompanyRepository {
       updatedAt: now,
     }
 
-    // Add logo and bannerImage if provided
+    // Add logo if provided
     if (companyData.logo !== undefined) {
       updateData.logo = companyData.logo
-    }
-    if (companyData.bannerImage !== undefined) {
-      updateData.bannerImage = companyData.bannerImage
     }
 
     const result = await collection.findOneAndUpdate(
