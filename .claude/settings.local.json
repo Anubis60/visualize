@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd MRR logging and 3 new revenue pages with collapsible sidebar\n\n- Add detailed console logging for MRR calculations showing per-plan breakdown\n- Create /mrr page with MRR breakdown by billing period and growth trend\n- Create /arr page with ARR calculation and quarterly growth chart\n- Create /net-mrr-movements page with movement categories (New, Expansion, Contraction, Churn)\n- Make sidebar collapsible with toggle button\n- Add Revenue section to sidebar with 3 new pages\n- When collapsed, sidebar shows only icons/emojis with tooltips\n- Smooth transitions for sidebar width changes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
