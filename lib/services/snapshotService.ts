@@ -28,15 +28,16 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     // 3. Update company record in database
     const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
     const sampleData = allMemberships[0] || {}
+    const companyData = (sampleData as { company?: { title?: string; route?: string } }).company
     await companyRepository.registerCompany({
       id: companyId,
-      title: sampleData.company?.title || 'Company',
-      route: sampleData.company?.route || companyId,
+      title: companyData?.title || 'Company',
+      route: companyData?.route || companyId,
       logo: undefined,
       bannerImage: undefined,
       industryType: undefined,
       businessType: undefined,
-      rawData: sampleData.company || {},
+      rawData: companyData || {},
     })
     console.log('  Company data updated in database')
 
@@ -227,7 +228,7 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       rawData: {
         company: {
           id: companyId,
-          title: sampleData.company?.title || 'Company',
+          title: companyData?.title || 'Company',
           logo: undefined,
           bannerImage: undefined,
         },
