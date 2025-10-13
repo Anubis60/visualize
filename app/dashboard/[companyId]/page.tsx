@@ -53,31 +53,15 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         console.log('Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
 
-        // Fetch raw memberships data
-        console.log('\n=== RAW MEMBERSHIPS DATA (ALL) ===')
-        const membershipsResponse = await fetch(`/api/memberships?company_id=${companyId}`)
-        if (membershipsResponse.ok) {
-          const membershipsData = await membershipsResponse.json()
-          console.log('RAW MEMBERSHIPS RESPONSE:', JSON.stringify(membershipsData, null, 2))
-        }
-
-        // Fetch raw transactions/payments data
-        console.log('\n=== RAW TRANSACTIONS/PAYMENTS DATA (ALL) ===')
-        const transactionsResponse = await fetch(`/api/transactions?company_id=${companyId}`)
-        if (transactionsResponse.ok) {
-          const transactionsData = await transactionsResponse.json()
-          console.log('RAW TRANSACTIONS RESPONSE:', JSON.stringify(transactionsData, null, 2))
-        }
-
-        // Fetch historical data (1 year back - ALL data points)
-        console.log('\n=== HISTORICAL DATA (1 YEAR BACK - ALL DATA POINTS) ===')
-        const historicalResponse = await fetch(`/api/analytics/historical?company_id=${companyId}&days=365&period=daily`)
-        if (historicalResponse.ok) {
-          const historicalData = await historicalResponse.json()
-          console.log('RAW HISTORICAL RESPONSE (ALL DATA):', JSON.stringify(historicalData, null, 2))
-        }
-
-        console.log('\n=== END RAW DATA DUMPS ===\n')
+        // Trigger server-side raw data logging to Vercel logs
+        fetch(`/api/debug/raw-data-full?company_id=${companyId}`)
+          .then(res => res.json())
+          .then(result => {
+            console.log('Raw data logged to Vercel server logs:', result.message)
+          })
+          .catch(err => {
+            console.error('Failed to trigger raw data logging:', err)
+          })
       } catch (err) {
         console.error('Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
