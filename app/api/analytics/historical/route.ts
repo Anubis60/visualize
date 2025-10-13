@@ -5,7 +5,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const companyId = searchParams.get('company_id')
-    const days = parseInt(searchParams.get('days') || '30')
+    const days = parseInt(searchParams.get('days') || '365')
+    const period = searchParams.get('period') || 'daily' // daily, weekly, monthly, quarterly
 
     if (!companyId) {
       return NextResponse.json(
@@ -14,11 +15,38 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch historical metrics
-    const metrics = await metricsRepository.getDailyMetrics(companyId, days)
+    // Validate period
+    if (!['daily', 'weekly', 'monthly', 'quarterly'].includes(period)) {
+      return NextResponse.json(
+        { error: 'Invalid period. Must be one of: daily, weekly, monthly, quarterly' },
+        { status: 400 }
+      )
+    }
+
+    // Fetch historical metrics based on period
+    let metrics
+    switch (period) {
+      case 'weekly':
+        const weeks = Math.ceil(days / 7)
+        metrics = await metricsRepository.getWeeklyMetrics(companyId, weeks)
+        break
+      case 'monthly':
+        const months = Math.ceil(days / 30)
+        metrics = await metricsRepository.getMonthlyMetrics(companyId, months)
+        break
+      case 'quarterly':
+        const quarters = Math.ceil(days / 90)
+        metrics = await metricsRepository.getQuarterlyMetrics(companyId, quarters)
+        break
+      case 'daily':
+      default:
+        metrics = await metricsRepository.getDailyMetrics(companyId, days)
+        break
+    }
 
     return NextResponse.json({
       companyId,
+      period,
       days,
       data: metrics,
       count: metrics.length,

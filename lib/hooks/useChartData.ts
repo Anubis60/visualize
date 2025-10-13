@@ -9,6 +9,28 @@ export interface HistoricalDataPoint {
   activeSubscribers: number
   arpu: number
   churnRate?: number
+  revenue?: number
+  netRevenue?: number
+  newMRR?: number
+  expansionMRR?: number
+  contractionMRR?: number
+  churnedMRR?: number
+  activeCustomers?: number
+  newCustomers?: number
+  upgrades?: number
+  downgrades?: number
+  reactivations?: number
+  cancellations?: number
+  trials?: number
+  clv?: number
+  cashFlow?: number
+  successfulPayments?: number
+  failedCharges?: number
+  refunds?: number
+  avgSalePrice?: number
+  revenueChurnRate?: number
+  customerChurnRate?: number
+  quickRatio?: number
 }
 
 interface ChartDataPoint {
@@ -16,9 +38,11 @@ interface ChartDataPoint {
   value: number
 }
 
+type MetricKey = keyof Omit<HistoricalDataPoint, 'date'>
+
 export function useChartData(
   rawData: HistoricalDataPoint[],
-  metric: 'mrr' | 'arr' | 'arpu' | 'activeSubscribers' | 'churnRate'
+  metric: MetricKey
 ) {
   const [chartType, setChartType] = useState<ChartType>('line')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)

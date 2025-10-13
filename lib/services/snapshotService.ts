@@ -1,6 +1,9 @@
 import { whopSdk } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
+import { calculateTrialMetrics } from '@/lib/analytics/trials'
+import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
+import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics, Payment } from '@/lib/analytics/transactions'
 import { Membership, Plan } from '@/lib/types/analytics'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
@@ -76,19 +79,19 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       if (!hasNextPlanPage) break
     }
 
-    // 4. Fetch transactions/payments
-    console.log('  Fetching transactions...')
-    const transactionsUrl = new URL("https://api.whop.com/api/v1/payments")
-    transactionsUrl.searchParams.set("company_id", companyId)
+    // 4. Fetch payments
+    console.log('  Fetching payments...')
+    const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
+    paymentsUrl.searchParams.set("company_id", companyId)
 
-    const transactionsResponse = await fetch(transactionsUrl, {
+    const paymentsResponse = await fetch(paymentsUrl, {
       headers: {
         Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
       },
     })
 
-    const transactionsData = await transactionsResponse.json()
-    const transactions = transactionsData.data || []
+    const paymentsData = await paymentsResponse.json()
+    const payments = (paymentsData.data || []) as Payment[]
 
     // 5. Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
@@ -101,16 +104,40 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       planData: m.plan ? planMap.get(m.plan.id) : undefined
     }))
 
-    // 6. Calculate metrics
-    console.log('  Calculating metrics...')
+    // 6. Calculate all metrics
+    console.log('  Calculating all metrics...')
     const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
     const subscriberMetrics = calculateSubscriberMetrics(enrichedMemberships)
     const activeUniqueSubscribers = getActiveUniqueSubscribers(enrichedMemberships)
     const arpu = calculateARPU(mrrData.total, activeUniqueSubscribers)
+    const trialMetrics = calculateTrialMetrics(enrichedMemberships)
+    const clvMetrics = calculateCustomerLifetimeValue(enrichedMemberships)
+    const cashFlowMetrics = calculateCashFlow(payments)
+    const paymentMetrics = calculatePaymentMetrics(payments)
+    const refundMetrics = calculateRefundMetrics(payments)
 
-    // 7. Store snapshot in MongoDB
-    console.log('  Storing snapshot...')
+    // Calculate MRR movements (simplified - you may want more sophisticated logic)
+    const totalRevenue = payments.reduce((sum, p) => p.status === 'paid' ? sum + p.total : sum, 0)
+    const recurringRevenue = mrrData.total * 30 // Approximate monthly recurring
+    const nonRecurringRevenue = totalRevenue - recurringRevenue
+
+    // Calculate net revenue
+    const grossRevenue = totalRevenue
+    const refundedAmount = refundMetrics.refundedAmount
+    const processingFees = totalRevenue * 0.029 + (paymentMetrics.totalPayments * 0.30) // Estimate 2.9% + $0.30 per transaction
+    const netRevenueTotal = grossRevenue - refundedAmount - processingFees
+
+    // Calculate active customers
+    const activeCustomersCount = activeUniqueSubscribers
+    const newCustomersCount = enrichedMemberships.filter(m => {
+      const createdAt = m.createdAt || 0
+      const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60)
+      return createdAt > thirtyDaysAgo && m.status === 'active'
+    }).length
+
+    // 7. Store comprehensive snapshot in MongoDB
+    console.log('  Storing comprehensive snapshot...')
     await metricsRepository.upsertDailySnapshot(companyId, {
       mrr: {
         total: mrrData.total,
@@ -120,6 +147,121 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       arpu,
       subscribers: subscriberMetrics,
       activeUniqueSubscribers,
+      revenue: {
+        total: totalRevenue,
+        recurring: recurringRevenue,
+        nonRecurring: nonRecurringRevenue,
+        growth: 0, // Calculate from previous snapshot
+      },
+      netRevenue: {
+        total: netRevenueTotal,
+        afterRefunds: grossRevenue - refundedAmount,
+        afterFees: grossRevenue - processingFees,
+        margin: (netRevenueTotal / grossRevenue) * 100,
+        gross: grossRevenue,
+        refunds: refundedAmount,
+        fees: processingFees,
+      },
+      newMRR: {
+        total: mrrData.total * 0.1, // Placeholder - implement proper calculation
+        customers: newCustomersCount,
+        growth: 0,
+      },
+      expansionMRR: {
+        total: 0, // Implement expansion tracking
+        rate: 0,
+        customers: 0,
+      },
+      contractionMRR: {
+        total: 0, // Implement contraction tracking
+        rate: 0,
+        customers: 0,
+      },
+      churnedMRR: {
+        total: 0, // Implement churn tracking
+        rate: 0,
+        customers: subscriberMetrics.cancelled,
+      },
+      activeCustomers: {
+        total: activeCustomersCount,
+        new: newCustomersCount,
+        returning: activeCustomersCount - newCustomersCount,
+        growth: 0,
+      },
+      newCustomers: {
+        total: newCustomersCount,
+        growth: 0,
+      },
+      upgrades: {
+        total: 0, // Implement upgrade tracking
+        revenue: 0,
+        customers: 0,
+      },
+      downgrades: {
+        total: 0, // Implement downgrade tracking
+        lostRevenue: 0,
+        customers: 0,
+      },
+      reactivations: {
+        total: 0, // Implement reactivation tracking
+        revenue: 0,
+      },
+      cancellations: {
+        total: subscriberMetrics.cancelled,
+        rate: (subscriberMetrics.cancelled / subscriberMetrics.total) * 100,
+      },
+      trials: {
+        total: trialMetrics.totalTrials,
+        active: trialMetrics.activeTrials,
+        converted: trialMetrics.convertedTrials,
+        conversionRate: trialMetrics.conversionRate,
+      },
+      clv: {
+        average: clvMetrics.averageCLV,
+        median: clvMetrics.medianCLV,
+        total: clvMetrics.totalCustomers,
+      },
+      cashFlow: {
+        gross: cashFlowMetrics.grossCashFlow,
+        net: cashFlowMetrics.netCashFlow,
+        recurring: cashFlowMetrics.recurringCashFlow,
+        nonRecurring: cashFlowMetrics.nonRecurringCashFlow,
+      },
+      payments: {
+        successful: paymentMetrics.successfulPayments,
+        failed: paymentMetrics.failedPayments,
+        total: paymentMetrics.totalPayments,
+        successRate: paymentMetrics.successRate,
+      },
+      failedCharges: {
+        total: paymentMetrics.failedPayments,
+        amount: payments.filter(p => p.status === 'failed').reduce((sum, p) => sum + p.total, 0),
+        rate: (paymentMetrics.failedPayments / paymentMetrics.totalPayments) * 100,
+      },
+      refunds: {
+        total: refundMetrics.totalRefunds,
+        amount: refundMetrics.refundedAmount,
+        rate: refundMetrics.refundRate,
+      },
+      avgSalePrice: {
+        value: totalRevenue / paymentMetrics.totalPayments || 0,
+        growth: 0,
+      },
+      revenueChurnRate: {
+        rate: 0, // Calculate from MRR movements
+        amount: 0,
+      },
+      customerChurnRate: {
+        rate: (subscriberMetrics.cancelled / subscriberMetrics.total) * 100,
+        count: subscriberMetrics.cancelled,
+      },
+      quickRatio: {
+        value: 0, // (New MRR + Expansion MRR) / (Churned MRR + Contraction MRR)
+        newMRR: 0,
+        expansionMRR: 0,
+        churnedMRR: 0,
+        contractionMRR: 0,
+      },
       metadata: {
         totalMemberships: allMemberships.length,
         activeMemberships: enrichedMemberships.filter(m => {
@@ -139,14 +281,14 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
         },
         memberships: allMemberships,
         plans: allPlans,
-        transactions,
+        transactions: payments,
       }
     })
 
     console.log(`✅ Snapshot captured successfully for ${companyId}`)
     console.log(`  - Memberships: ${allMemberships.length}`)
     console.log(`  - Plans: ${allPlans.length}`)
-    console.log(`  - Transactions: ${transactions.length}`)
+    console.log(`  - Payments: ${payments.length}`)
     console.log(`  - MRR: $${mrrData.total.toFixed(2)}`)
     console.log(`  - ARR: $${arr.toFixed(2)}`)
 
