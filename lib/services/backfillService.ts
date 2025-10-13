@@ -1,9 +1,9 @@
-import { whopSdk } from '@/lib/whop/sdk'
+import { whopClient } from '@/lib/whop/client'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
-import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics, Payment } from '@/lib/analytics/transactions'
+import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics } from '@/lib/analytics/transactions'
 import { Membership, Plan } from '@/lib/types/analytics'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 import { companyRepository } from '@/lib/db/repositories/CompanyRepository'
@@ -16,109 +16,34 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
   console.log(`Starting 365-day historical backfill for company ${companyId}`)
 
   try {
-    // 1. Fetch company data
-    console.log('  Fetching company data...')
-    const company = await whopSdk.withCompany(companyId).companies.getCompany({
-      companyId,
-    })
-
-    // Update company record in database with latest data
-    await companyRepository.registerCompany({
-      id: company.id,
-      title: company.title,
-      route: company.route || companyId,
-      logo: company.logo,
-      bannerImage: company.bannerImage,
-      industryType: company.industryType || undefined,
-      businessType: company.businessType || undefined,
-      rawData: company,
-    })
-    console.log('  Company data updated in database')
-
-    // 2. Fetch ALL memberships using pagination
+    // 1. Fetch ALL memberships using whopClient
     console.log('  Fetching memberships...')
-    let allMemberships: Membership[] = []
-    let hasNextPage = true
-    let cursor: string | undefined = undefined
+    const allMemberships = await whopClient.getAllMemberships(companyId)
+    console.log(`  Total memberships fetched: ${allMemberships.length}`)
 
-    while (hasNextPage) {
-      const response = await whopSdk.withCompany(companyId).companies.listMemberships({
-        companyId,
-        first: 50,
-        after: cursor,
-      })
-
-      const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
-      allMemberships = [...allMemberships, ...nodes]
-
-      hasNextPage = response?.memberships?.pageInfo?.hasNextPage || false
-      cursor = response?.memberships?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPage) break
-    }
-
-    // 3. Fetch ALL plans using pagination
+    // 2. Fetch ALL plans using whopClient
     console.log('  Fetching plans...')
-    let allPlans: Plan[] = []
-    let hasNextPlanPage = true
-    let planCursor: string | undefined = undefined
+    const allPlans = await whopClient.getAllPlans(companyId)
+    console.log(`  Total plans fetched: ${allPlans.length}`)
 
-    while (hasNextPlanPage) {
-      const plansResponse = await whopSdk.withCompany(companyId).companies.listPlans({
-        companyId,
-        first: 50,
-        after: planCursor,
-      })
+    // 3. Register company in database
+    console.log('  Registering company...')
+    const sampleData = allMemberships[0] || {}
+    await companyRepository.registerCompany({
+      id: companyId,
+      title: sampleData.company?.title || 'Company',
+      route: sampleData.company?.route || companyId,
+      logo: undefined,
+      bannerImage: undefined,
+      industryType: undefined,
+      businessType: undefined,
+      rawData: sampleData.company || {},
+    })
+    console.log('  Company registered in database')
 
-      const planNodes = (plansResponse?.plans?.nodes || []) as Plan[]
-      allPlans = [...allPlans, ...planNodes]
-
-      hasNextPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
-      planCursor = plansResponse?.plans?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPlanPage) break
-    }
-
-    // 4. Fetch ALL payments using cursor-based pagination
+    // 4. Fetch ALL payments using whopClient
     console.log('  Fetching payments...')
-    let allPayments: Payment[] = []
-    let hasMorePayments = true
-    let paymentCursor: string | undefined = undefined
-
-    while (hasMorePayments) {
-      const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
-      paymentsUrl.searchParams.set("company_id", companyId)
-      paymentsUrl.searchParams.set("first", "100") // Fetch 100 at a time
-      if (paymentCursor) {
-        paymentsUrl.searchParams.set("after", paymentCursor)
-      }
-
-      const paymentsResponse = await fetch(paymentsUrl, {
-        headers: {
-          Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
-        },
-      })
-
-      const paymentsData = await paymentsResponse.json()
-      const payments = (paymentsData.data || []) as Payment[]
-
-      if (payments.length === 0) {
-        hasMorePayments = false
-      } else {
-        allPayments = [...allPayments, ...payments]
-        console.log(`    Fetched ${payments.length} payments (total so far: ${allPayments.length})`)
-
-        // Check if there's a next page using page_info
-        const pageInfo = paymentsData.page_info
-        if (pageInfo && pageInfo.has_next_page && pageInfo.end_cursor) {
-          paymentCursor = pageInfo.end_cursor
-        } else {
-          hasMorePayments = false
-        }
-      }
-    }
-
-    const payments = allPayments
+    const payments = await whopClient.getAllPayments(companyId)
     console.log(`  Total payments fetched: ${payments.length}`)
 
     // 5. Enrich memberships with plan data
@@ -324,10 +249,10 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
         },
         rawData: {
           company: {
-            id: company.id,
-            title: company.title,
-            logo: typeof company.logo === 'string' ? company.logo : undefined,
-            bannerImage: typeof company.bannerImage === 'string' ? company.bannerImage : undefined,
+            id: companyId,
+            title: sampleData.company?.title || 'Company',
+            logo: undefined,
+            bannerImage: undefined,
           },
           memberships: membershipsOnDate,
           plans: allPlans,
