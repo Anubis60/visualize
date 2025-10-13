@@ -39,39 +39,47 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        console.log('🔍 Dashboard: Fetching analytics for company:', companyId)
+        console.log('Dashboard: Fetching analytics for company:', companyId)
 
         // Fetch analytics
         const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
-        console.log('📡 Dashboard: Response status:', analyticsResponse.status)
+        console.log('Dashboard: Response status:', analyticsResponse.status)
         if (!analyticsResponse.ok) {
           throw new Error('Failed to fetch analytics')
         }
         const data = await analyticsResponse.json()
-        console.log('📊 Dashboard: Received data:', data)
-        console.log('💰 MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
-        console.log('👥 Active Subscribers:', data.activeUniqueSubscribers)
+        console.log('Dashboard: Received data:', data)
+        console.log('MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
+        console.log('Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
 
-        // Fetch debug raw data in background for analysis
-        console.log('🔍 Starting debug raw data fetch...')
-        fetch(`/api/debug/raw-data?company_id=${companyId}`)
-          .then(res => {
-            console.log('📡 Debug raw data response status:', res.status)
-            return res.json()
-          })
-          .then(debugData => {
-            console.log('✅ RAW DEBUG DATA - Company:', debugData.rawResponses?.company)
-            console.log('✅ RAW DEBUG DATA - Memberships:', debugData.rawResponses?.memberships)
-            console.log('✅ RAW DEBUG DATA - Plans:', debugData.rawResponses?.plans)
-            console.log('✅ RAW DEBUG DATA - Payments:', debugData.rawResponses?.payments)
-            console.log('✅ RAW DEBUG DATA - Available SDK Methods:', debugData.availableSdkMethods)
-          })
-          .catch(err => {
-            console.error('❌ Error fetching debug raw data:', err)
-          })
+        // Fetch raw memberships data
+        console.log('\n=== RAW MEMBERSHIPS DATA (ALL) ===')
+        const membershipsResponse = await fetch(`/api/memberships?company_id=${companyId}`)
+        if (membershipsResponse.ok) {
+          const membershipsData = await membershipsResponse.json()
+          console.log('RAW MEMBERSHIPS RESPONSE:', JSON.stringify(membershipsData, null, 2))
+        }
+
+        // Fetch raw transactions/payments data
+        console.log('\n=== RAW TRANSACTIONS/PAYMENTS DATA (ALL) ===')
+        const transactionsResponse = await fetch(`/api/transactions?company_id=${companyId}`)
+        if (transactionsResponse.ok) {
+          const transactionsData = await transactionsResponse.json()
+          console.log('RAW TRANSACTIONS RESPONSE:', JSON.stringify(transactionsData, null, 2))
+        }
+
+        // Fetch historical data (1 year back - ALL data points)
+        console.log('\n=== HISTORICAL DATA (1 YEAR BACK - ALL DATA POINTS) ===')
+        const historicalResponse = await fetch(`/api/analytics/historical?company_id=${companyId}&days=365&period=daily`)
+        if (historicalResponse.ok) {
+          const historicalData = await historicalResponse.json()
+          console.log('RAW HISTORICAL RESPONSE (ALL DATA):', JSON.stringify(historicalData, null, 2))
+        }
+
+        console.log('\n=== END RAW DATA DUMPS ===\n')
       } catch (err) {
-        console.error('❌ Dashboard: Error fetching analytics:', err)
+        console.error('Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)
@@ -113,7 +121,7 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">📊 Overview</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
             <p className="text-gray-600 mt-1">Your Whop analytics at a glance</p>
           </div>
         </div>

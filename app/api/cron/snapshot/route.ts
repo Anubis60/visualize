@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('🕐 Cron job triggered: Starting daily snapshot capture...')
+    console.log('Cron job triggered: Starting daily snapshot capture...')
 
     await captureAllSnapshots()
 

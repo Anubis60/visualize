@@ -34,8 +34,9 @@ export interface HistoricalDataPoint {
 }
 
 interface ChartDataPoint {
-  date: string
+  date: string // Formatted date for display (e.g. "Oct 13")
   value: number
+  fullDate?: string // Original ISO date string (e.g. "2025-10-13")
 }
 
 type MetricKey = keyof Omit<HistoricalDataPoint, 'date'>
@@ -103,6 +104,7 @@ export function useChartData(
     return sortedData.map(item => ({
       date: format(new Date(item.date), 'MMM d'),
       value: item[metric] ?? 0,
+      fullDate: item.date, // Keep original date for proper parsing
     }))
   }, [rawData, dateRange, metric])
 

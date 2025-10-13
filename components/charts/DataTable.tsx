@@ -1,7 +1,7 @@
 'use client'
 
 interface DataTableProps {
-  data: Array<{ date: string; value: number }>
+  data: Array<{ date: string; value: number; fullDate?: string }>
   label?: string
 }
 
@@ -34,12 +34,14 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
   const percentChanges = getRowData('percentChange')
 
   // Format date to show month name
-  const formatMonthName = (dateStr: string) => {
+  const formatMonthName = (item: { date: string; fullDate?: string }) => {
     try {
+      // Use fullDate if available (ISO format like "2025-10-13"), otherwise fall back to date
+      const dateStr = item.fullDate || item.date
       const date = new Date(dateStr)
       return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     } catch {
-      return dateStr
+      return item.date
     }
   }
 
@@ -56,7 +58,7 @@ export function DataTable({ data, label = 'Value' }: DataTableProps) {
               </th>
               {displayData.map((item) => (
                 <th key={item.date} className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                  {formatMonthName(item.date)}
+                  {formatMonthName(item)}
                 </th>
               ))}
             </tr>
