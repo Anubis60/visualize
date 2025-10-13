@@ -54,14 +54,9 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         setAnalytics(data)
 
         // Trigger server-side raw data logging to Vercel logs
-        fetch(`/api/debug/raw-data-full?company_id=${companyId}`)
-          .then(res => res.json())
-          .then(result => {
-            console.log('Raw data logged to Vercel server logs:', result.message)
-          })
-          .catch(err => {
-            console.error('Failed to trigger raw data logging:', err)
-          })
+        console.log('Triggering raw data log to Vercel...')
+        await fetch(`/api/debug/raw-data-full?company_id=${companyId}`)
+        console.log('Raw data logged to Vercel server logs - check Vercel dashboard logs')
       } catch (err) {
         console.error('Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
