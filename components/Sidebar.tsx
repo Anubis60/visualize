@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight, Target, CreditCard, DollarSign as DollarIcon } from 'lucide-react'
+import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight, Target, CreditCard } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 
 interface SidebarProps {

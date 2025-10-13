@@ -65,8 +65,7 @@ export function calculateCustomerLifetimeValue(memberships: Membership[]): Custo
  * Calculate average order value and order metrics
  */
 export function calculateOrderMetrics(
-  payments: Payment[],
-  memberships: Membership[]
+  payments: Payment[]
 ): OrderMetrics {
   const successfulPayments = payments.filter(p => p.status === 'paid' && p.substatus === 'succeeded')
 

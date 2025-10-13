@@ -7,7 +7,7 @@ export interface HistoricalMRRData {
   date: string
   mrr: number
   newMRR: number
-  churned MRR: number
+  churnedMRR: number
   expansionMRR: number
   contractionMRR: number
 }
