@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { DataTable } from '@/components/charts/DataTable'
+import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
   revenue: {
@@ -11,31 +13,27 @@ interface AnalyticsData {
     nonRecurring: number
     growth: number
   }
-}
-
-interface ChartDataPoint {
-  date: string
-  value: number
+  plans: Array<{ id: string; name: string }>
 }
 
 export default function RevenuePage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     params.then((p) => {
       console.log('🔍 Revenue Page: Fetching analytics for company:', p.companyId)
 
-      fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
-        .then(res => res.json())
-        .then((currentData) => {
+      Promise.all([
+        fetch(`/api/analytics/enriched?company_id=${p.companyId}`).then(res => res.json()),
+        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
+      ])
+        .then(([currentData, historicalResponse]) => {
+          console.log('📊 Revenue Page: Received current data:', currentData)
+          console.log('📈 Revenue Page: Received historical data:', historicalResponse)
           setAnalytics(currentData)
-          const now = new Date()
-          setChartData([{
-            date: now.toISOString(),
-            value: currentData.revenue?.total || 0
-          }])
+          setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
         .catch(err => {
@@ -44,6 +42,18 @@ export default function RevenuePage({ params }: { params: Promise<{ companyId: s
         })
     })
   }, [params])
+
+  const {
+    chartType,
+    setChartType,
+    selectedPlan,
+    setSelectedPlan,
+    timePeriod,
+    setTimePeriod,
+    dateRange,
+    setDateRange,
+    chartData,
+  } = useChartData(historicalData, 'revenue')
 
   if (loading) {
     return (
@@ -63,6 +73,8 @@ export default function RevenuePage({ params }: { params: Promise<{ companyId: s
       </div>
     )
   }
+
+  const plans = analytics.plans || []
 
   return (
     <div className="p-8">
@@ -103,9 +115,20 @@ export default function RevenuePage({ params }: { params: Promise<{ companyId: s
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Total Revenue Over Time</h2>
+        <ChartControls
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          plans={plans}
+          selectedPlan={selectedPlan}
+          onPlanChange={setSelectedPlan}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+        />
         <MetricsChart
           data={chartData}
-          chartType="line"
+          chartType={chartType}
           label="Revenue"
           color="#10b981"
         />
