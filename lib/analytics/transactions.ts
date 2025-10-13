@@ -17,6 +17,7 @@ export interface Payment {
   billing_reason: string
   plan: { id: string }
   membership: { id: string; status: string }
+  user: { id: string }
 }
 
 export interface CashFlowMetrics {
