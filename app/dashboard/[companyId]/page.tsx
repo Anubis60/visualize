@@ -41,6 +41,16 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
       try {
         console.log('Dashboard: Fetching analytics for company:', companyId)
 
+        // First, ensure historical data exists (trigger backfill if needed)
+        console.log('Checking if historical data exists...')
+        const backfillCheck = await fetch(`/api/analytics/ensure-backfill?company_id=${companyId}`)
+        const backfillStatus = await backfillCheck.json()
+        console.log('Backfill status:', backfillStatus)
+
+        if (backfillStatus.backfillStarted) {
+          console.log('Historical data backfill started. This will take a few minutes.')
+        }
+
         // Fetch analytics
         const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
         console.log('Dashboard: Response status:', analyticsResponse.status)
