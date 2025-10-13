@@ -54,11 +54,6 @@ export class WhopClient {
     if (params?.page) searchParams.set('page', String(params.page))
     if (params?.per) searchParams.set('per', String(params.per))
 
-    // Expand plan, product, and user data
-    searchParams.append('expand[]', 'plan')
-    searchParams.append('expand[]', 'product')
-    searchParams.append('expand[]', 'user')
-
     const result = await this.fetch<WhopMembershipsResponse>(
       `/memberships?${searchParams.toString()}`
     )
