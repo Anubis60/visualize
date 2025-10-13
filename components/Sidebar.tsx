@@ -132,7 +132,7 @@ export function Sidebar({ companyId }: SidebarProps) {
           title={collapsed ? "Overview" : undefined}
         >
           <span className="text-lg">📊</span>
-          {!collapsed && <span className="ml-3">Overview</span>}
+          {!collapsed && <span className="ml-3 text-sm">Overview</span>}
         </Link>
 
         {/* Revenue Section */}
@@ -158,7 +158,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "MRR" : undefined}
           >
             <DollarSign className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">MRR</span>}
+            {!collapsed && <span className="ml-3 text-sm">MRR</span>}
           </Link>
 
           <Link
@@ -171,7 +171,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "Annual Run Rate" : undefined}
           >
             <DollarSign className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Annual Run Rate</span>}
+            {!collapsed && <span className="ml-3 text-sm">Annual Run Rate</span>}
           </Link>
 
           <Link
@@ -184,7 +184,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "Net MRR Movements" : undefined}
           >
             <TrendingDown className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Net MRR Movements</span>}
+            {!collapsed && <span className="ml-3 text-sm">Net MRR Movements</span>}
           </Link>
         </div>
 
@@ -211,7 +211,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "Subscriber Count" : undefined}
           >
             <Users className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Subscriber Count</span>}
+            {!collapsed && <span className="ml-3 text-sm">Subscriber Count</span>}
           </Link>
 
           <Link
@@ -224,7 +224,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "Subscriber Churn (30d)" : undefined}
           >
             <TrendingDown className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Subscriber Churn (30d)</span>}
+            {!collapsed && <span className="ml-3 text-sm">Subscriber Churn (30d)</span>}
           </Link>
 
           <Link
@@ -237,7 +237,7 @@ export function Sidebar({ companyId }: SidebarProps) {
             title={collapsed ? "Avg Revenue Per Account" : undefined}
           >
             <DollarSign className="h-4 w-4" />
-            {!collapsed && <span className="ml-3">Avg Revenue Per Account</span>}
+            {!collapsed && <span className="ml-3 text-sm">Avg Revenue Per Account</span>}
           </Link>
         </div>
       </nav>
