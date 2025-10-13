@@ -25,16 +25,8 @@ export async function GET(request: NextRequest) {
     // Check if company exists
     const company = await companyRepository.findByWhopCompanyId(companyId)
 
-    if (!company) {
-      console.log(`Company ${companyId} not found in database yet`)
-      return NextResponse.json({
-        needsBackfill: true,
-        message: 'Company not registered yet. Will be registered on first analytics fetch.',
-      })
-    }
-
-    // Check if backfill is already completed
-    if (company.backfillCompleted) {
+    // If company exists and backfill is completed, we're done
+    if (company?.backfillCompleted) {
       console.log(`Company ${companyId} already has backfill completed`)
       return NextResponse.json({
         needsBackfill: false,
@@ -47,7 +39,7 @@ export async function GET(request: NextRequest) {
     // Check if there's any historical data
     const recentSnapshots = await metricsRepository.getRecentSnapshots(companyId, 365)
 
-    if (recentSnapshots.length >= 30) {
+    if (recentSnapshots.length >= 30 && company) {
       // If we have at least 30 days of data, mark as completed
       console.log(`Company ${companyId} has ${recentSnapshots.length} snapshots, marking as complete`)
       await companyRepository.markBackfillCompleted(companyId)
@@ -59,8 +51,14 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Needs backfill - trigger it
-    console.log(`Company ${companyId} needs backfill. Starting 365-day historical capture...`)
+    // Company doesn't exist OR backfill not completed - trigger backfill
+    if (!company) {
+      console.log(`Company ${companyId} not found in database - will register during backfill`)
+    } else {
+      console.log(`Company ${companyId} exists but backfill not completed`)
+    }
+
+    console.log(`Starting 365-day historical backfill for ${companyId}...`)
 
     // Run backfill in background (don't await to avoid timeout)
     backfillCompanyHistory(companyId)
@@ -76,6 +74,7 @@ export async function GET(request: NextRequest) {
       backfillStarted: true,
       message: 'Historical data backfill started. This will take a few minutes.',
       snapshotsFound: recentSnapshots.length,
+      companyExists: !!company,
     })
 
   } catch (error) {
