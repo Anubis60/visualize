@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, TrendingDown, DollarSign, ChevronLeft, ChevronRight, Target, CreditCard, DollarSign as DollarIcon } from 'lucide-react'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 
 interface SidebarProps {
@@ -149,6 +149,85 @@ export function Sidebar({ companyId }: SidebarProps) {
           >
             <DollarSign className="h-4 w-4" />
             {!collapsed && <span className="ml-3 text-sm">Avg Revenue Per Account</span>}
+          </Link>
+
+          <Link
+            href={`/dashboard/${companyId}/clv`}
+            className={cn(
+              "flex items-center hover:bg-slate-800 transition-colors",
+              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
+              isActive(`/dashboard/${companyId}/clv`) && "bg-slate-800 border-l-4 border-blue-500"
+            )}
+            title={collapsed ? "Customer Lifetime Value" : undefined}
+          >
+            <span className="text-lg">💎</span>
+            {!collapsed && <span className="ml-3 text-sm">Customer Lifetime Value</span>}
+          </Link>
+
+          <Link
+            href={`/dashboard/${companyId}/trials`}
+            className={cn(
+              "flex items-center hover:bg-slate-800 transition-colors",
+              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
+              isActive(`/dashboard/${companyId}/trials`) && "bg-slate-800 border-l-4 border-blue-500"
+            )}
+            title={collapsed ? "Free Trials" : undefined}
+          >
+            <Target className="h-4 w-4" />
+            {!collapsed && <span className="ml-3 text-sm">Free Trials</span>}
+          </Link>
+        </div>
+
+        {/* Transactions Section */}
+        <div className="mt-6">
+          {!collapsed && (
+            <div className="px-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Transactions
+            </div>
+          )}
+          {collapsed && (
+            <div className="px-4 py-2 text-center">
+              <span className="text-xs text-slate-400">💳</span>
+            </div>
+          )}
+
+          <Link
+            href={`/dashboard/${companyId}/cash-flow`}
+            className={cn(
+              "flex items-center hover:bg-slate-800 transition-colors",
+              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
+              isActive(`/dashboard/${companyId}/cash-flow`) && "bg-slate-800 border-l-4 border-blue-500"
+            )}
+            title={collapsed ? "Cash Flow" : undefined}
+          >
+            <span className="text-lg">💰</span>
+            {!collapsed && <span className="ml-3 text-sm">Cash Flow</span>}
+          </Link>
+
+          <Link
+            href={`/dashboard/${companyId}/payments`}
+            className={cn(
+              "flex items-center hover:bg-slate-800 transition-colors",
+              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
+              isActive(`/dashboard/${companyId}/payments`) && "bg-slate-800 border-l-4 border-blue-500"
+            )}
+            title={collapsed ? "Payments" : undefined}
+          >
+            <CreditCard className="h-4 w-4" />
+            {!collapsed && <span className="ml-3 text-sm">Payments</span>}
+          </Link>
+
+          <Link
+            href={`/dashboard/${companyId}/refunds`}
+            className={cn(
+              "flex items-center hover:bg-slate-800 transition-colors",
+              collapsed ? "px-4 py-3 justify-center" : "px-6 py-3",
+              isActive(`/dashboard/${companyId}/refunds`) && "bg-slate-800 border-l-4 border-blue-500"
+            )}
+            title={collapsed ? "Refunds" : undefined}
+          >
+            <span className="text-lg">↩️</span>
+            {!collapsed && <span className="ml-3 text-sm">Refunds</span>}
           </Link>
         </div>
       </nav>
