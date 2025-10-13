@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { whopSdk } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
+import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { Membership, Plan } from '@/lib/types/analytics'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
@@ -131,13 +132,15 @@ export async function GET(request: NextRequest) {
     const subscriberMetrics = calculateSubscriberMetrics(enrichedMemberships)
     const activeUniqueSubscribers = getActiveUniqueSubscribers(enrichedMemberships)
     const arpu = calculateARPU(mrrData.total, activeUniqueSubscribers)
+    const trialMetrics = calculateTrialMetrics(enrichedMemberships)
 
     console.log(`\n💰 Final Metrics:`)
     console.log(`  MRR: $${mrrData.total.toFixed(2)}`)
     console.log(`  ARR: $${arr.toFixed(2)}`)
     console.log(`  ARPU: $${arpu.toFixed(2)}`)
     console.log(`  Active Unique Subscribers: ${activeUniqueSubscribers}`)
-    console.log(`  Active Memberships: ${subscriberMetrics.active}\n`)
+    console.log(`  Active Memberships: ${subscriberMetrics.active}`)
+    console.log(`  Trials: ${trialMetrics.totalTrials} (${trialMetrics.conversionRate.toFixed(1)}% conversion)\n`)
 
     // Extract unique plans with their access pass titles
     const uniquePlans = allPlans
@@ -162,6 +165,12 @@ export async function GET(request: NextRequest) {
       arpu,
       subscribers: subscriberMetrics,
       activeUniqueSubscribers,
+      trials: {
+        total: trialMetrics.totalTrials,
+        active: trialMetrics.activeTrials,
+        converted: trialMetrics.convertedTrials,
+        conversionRate: trialMetrics.conversionRate,
+      },
       plans: uniquePlans,
       timestamp: new Date().toISOString(),
     }
