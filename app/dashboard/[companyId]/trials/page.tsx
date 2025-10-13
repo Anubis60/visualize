@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { DataTable } from '@/components/charts/DataTable'
-import { useChartData, HistoricalDataPoint } from '@/lib/hooks/useChartData'
 
 interface AnalyticsData {
   trials: {
@@ -15,25 +13,31 @@ interface AnalyticsData {
   }
 }
 
+interface ChartDataPoint {
+  date: string
+  value: number
+}
+
 export default function TrialsPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     params.then((p) => {
       console.log('🔍 Trials Page: Fetching analytics for company:', p.companyId)
 
-      // Fetch current analytics and historical data
-      Promise.all([
-        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
-      ])
-        .then(([currentData, historicalResponse]) => {
+      fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
+        .then(res => res.json())
+        .then((currentData) => {
           console.log('📊 Trials Page: Received current data:', currentData)
-          console.log('📈 Trials Page: Received historical data:', historicalResponse)
           setAnalytics(currentData)
-          setHistoricalData(historicalResponse.data || [])
+          // Create simple chart data from current metrics
+          const now = new Date()
+          setChartData([{
+            date: now.toISOString(),
+            value: currentData.trials?.total || 0
+          }])
           setLoading(false)
         })
         .catch(err => {
@@ -42,15 +46,6 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
         })
     })
   }, [params])
-
-  // Chart data management
-  const {
-    chartData,
-    timeframe,
-    setTimeframe,
-    aggregation,
-    setAggregation,
-  } = useChartData(historicalData, 'subscribers', 'trialing')
 
   if (loading) {
     return (
@@ -103,14 +98,6 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
           </p>
         </div>
       </div>
-
-      {/* Chart Controls */}
-      <ChartControls
-        timeframe={timeframe}
-        onTimeframeChange={setTimeframe}
-        aggregation={aggregation}
-        onAggregationChange={setAggregation}
-      />
 
       {/* Chart */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
