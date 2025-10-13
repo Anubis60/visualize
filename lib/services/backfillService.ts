@@ -79,19 +79,46 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
       if (!hasNextPlanPage) break
     }
 
-    // 4. Fetch payments
+    // 4. Fetch ALL payments using pagination
     console.log('  Fetching payments...')
-    const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
-    paymentsUrl.searchParams.set("company_id", companyId)
+    let allPayments: Payment[] = []
+    let page = 1
+    let hasMorePayments = true
 
-    const paymentsResponse = await fetch(paymentsUrl, {
-      headers: {
-        Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
-      },
-    })
+    while (hasMorePayments) {
+      const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
+      paymentsUrl.searchParams.set("company_id", companyId)
+      paymentsUrl.searchParams.set("page", page.toString())
+      paymentsUrl.searchParams.set("per", "100") // Max per page
 
-    const paymentsData = await paymentsResponse.json()
-    const payments = (paymentsData.data || []) as Payment[]
+      const paymentsResponse = await fetch(paymentsUrl, {
+        headers: {
+          Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
+        },
+      })
+
+      const paymentsData = await paymentsResponse.json()
+      const payments = (paymentsData.data || []) as Payment[]
+
+      if (payments.length === 0) {
+        hasMorePayments = false
+      } else {
+        allPayments = [...allPayments, ...payments]
+        console.log(`    Fetched ${payments.length} payments (page ${page}, total so far: ${allPayments.length})`)
+        page++
+
+        // Check if there's a next page indicator in the response
+        if (paymentsData.pagination && !paymentsData.pagination.has_more) {
+          hasMorePayments = false
+        } else if (payments.length < 100) {
+          // If we got less than the page size, we're on the last page
+          hasMorePayments = false
+        }
+      }
+    }
+
+    const payments = allPayments
+    console.log(`  Total payments fetched: ${payments.length}`)
 
     // 5. Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
