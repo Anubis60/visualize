@@ -6,10 +6,8 @@ export interface Company {
   companyId: string // biz_xxxxx (Whop company ID)
   title: string
   route: string
-  logo?: {
-    __typename?: string
-    sourceUrl?: string
-  } | string | null
+  logo?: unknown // Can be string, ImageAttachment object, or other Whop attachment types
+  bannerImage?: unknown // Can be string, ImageAttachment object, or other Whop attachment types
   industryType?: string
   businessType?: string
   userId?: string | null
