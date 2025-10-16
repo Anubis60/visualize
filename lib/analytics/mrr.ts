@@ -46,19 +46,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     return isActive && m.planData
   })
 
-
-  // Debug: Show all memberships
-  memberships.forEach((m, i) => {
-      status: m.status,
-      canceledAt: m.canceledAt,
-      expiresAt: m.expiresAt,
-      hasPlanData: !!m.planData,
-      planType: m.planData?.planType,
-      renewalPrice: m.planData?.rawRenewalPrice,
-      billingPeriod: m.planData?.billingPeriod
-    })
-  })
-
   activeMemberships.forEach(membership => {
     const planData = membership.planData
     if (!planData) return
@@ -74,12 +61,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
     // Normalize to monthly (30 days)
     const monthlyRevenue = (price / billingPeriod) * 30
-
-      title: planData.accessPass?.title,
-      price,
-      billingPeriod,
-      monthlyRevenue
-    })
 
     // Categorize by billing period
     if (billingPeriod === 30) {
