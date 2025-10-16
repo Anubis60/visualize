@@ -38,3 +38,29 @@ export async function getDatabase(): Promise<Db> {
   const client = await clientPromise
   return client.db('financier')
 }
+
+// Initialize database indexes
+export async function initializeIndexes(): Promise<void> {
+  try {
+    const db = await getDatabase()
+
+    // Create indexes for metrics_snapshots collection
+    const metricsCollection = db.collection('metrics_snapshots')
+
+    // Compound index for companyId + date (used in queries and sorting)
+    await metricsCollection.createIndex(
+      { companyId: 1, date: -1 },
+      { name: 'companyId_date_idx' }
+    )
+
+    // Index for timestamp queries
+    await metricsCollection.createIndex(
+      { timestamp: -1 },
+      { name: 'timestamp_idx' }
+    )
+
+    console.log('[DATABASE] Indexes created successfully')
+  } catch (error) {
+    console.error('[DATABASE] Failed to create indexes:', error)
+  }
+}
