@@ -38,7 +38,7 @@ export default function DashboardLayout({
           }
         }
       } catch (err) {
-        console.error('Error checking subscription:', err)
+        // Error checking subscription
       } finally {
         setLoading(false)
       }

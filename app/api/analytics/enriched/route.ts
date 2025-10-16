@@ -19,8 +19,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('🔄 Fetching enriched analytics with payments data...')
-
     // Fetch memberships
     let allMemberships: Membership[] = []
     let hasNextPage = true
@@ -99,14 +97,6 @@ export async function GET(request: NextRequest) {
     const paymentMetrics = calculatePaymentMetrics(payments)
     const refundMetrics = calculateRefundMetrics(payments)
 
-    console.log(`\n💰 Enriched Analytics Metrics:`)
-    console.log(`  MRR: $${mrrData.total.toFixed(2)}`)
-    console.log(`  Trials: ${trialMetrics.totalTrials}`)
-    console.log(`  CLV: $${clvMetrics.averageCLV.toFixed(2)}`)
-    console.log(`  Cash Flow (Net): $${cashFlowMetrics.netCashFlow.toFixed(2)}`)
-    console.log(`  Payments: ${paymentMetrics.successfulPayments}/${paymentMetrics.totalPayments}`)
-    console.log(`  Refunds: ${refundMetrics.totalRefunds}\n`)
-
     // Extract unique plans
     const uniquePlans = allPlans
       .filter(plan => plan.accessPass?.title)
@@ -164,7 +154,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Error calculating enriched analytics:', error)
+    console.error('[API] Error calculating enriched analytics:', error)
     return NextResponse.json(
       { error: 'Failed to calculate analytics', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

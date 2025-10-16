@@ -47,12 +47,10 @@ async function verifyWhopSignature(payload: string, signature: string | null) {
   const secret = process.env.WHOP_WEBHOOK_SECRET;
 
   if (!secret) {
-    console.warn('WHOP_WEBHOOK_SECRET not configured - skipping signature verification');
-    return true; // Allow in development, but warn
+    return true; // Allow in development
   }
 
   if (!signature) {
-    console.log('No signature provided in webhook');
     return false;
   }
 
@@ -69,7 +67,6 @@ async function verifyWhopSignature(payload: string, signature: string | null) {
     const receivedSignature = signatureParts.v1;
 
     if (!timestamp || !receivedSignature) {
-      console.log('Invalid signature format - expected t=timestamp,v1=signature');
       return false;
     }
 
@@ -79,20 +76,9 @@ async function verifyWhopSignature(payload: string, signature: string | null) {
     hmac.update(signedPayload);
     const expectedSignature = hmac.digest('hex');
 
-    const match = expectedSignature === receivedSignature;
-
-    if (!match) {
-      console.log('Signature verification failed:', {
-        timestamp,
-        receivedSigPreview: receivedSignature.substring(0, 16) + '...',
-        expectedSigPreview: expectedSignature.substring(0, 16) + '...'
-      });
-      return false;
-    }
-
-    return true;
+    return expectedSignature === receivedSignature;
   } catch (error) {
-    console.error('Error verifying webhook signature:', error);
+    console.error('[API] Error verifying webhook signature:', error);
     return false;
   }
 }
@@ -104,44 +90,17 @@ export async function POST(request: Request) {
     const headersList = await headers();
     const signature = headersList.get('x-whop-signature');
 
-    console.log('Webhook request received:', {
-      hasSignature: !!signature,
-      hasSecret: !!process.env.WHOP_WEBHOOK_SECRET,
-      bodyLength: body.length,
-      signaturePreview: signature ? `${signature.substring(0, 10)}...` : 'none'
-    });
-
     // Verify webhook signature
     const isValid = await verifyWhopSignature(body, signature);
     if (!isValid) {
-      console.error('Invalid webhook signature - this may be a test event from Whop dashboard');
-      console.log('If this is a test event, it will not have a valid signature. Real events from Whop will have proper signatures.');
-
-      // For test events, parse and log but don't process
-      try {
-        const testEvent = JSON.parse(body);
-        console.log('Test event received:', testEvent.action);
-        return NextResponse.json({
-          received: true,
-          note: 'Test event received but not processed due to invalid signature. Real events will be processed.'
-        });
-      } catch {
-        return NextResponse.json(
-          { error: 'Invalid signature' },
-          { status: 401 }
-        );
-      }
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
     }
 
     // Parse the webhook payload
     const event = JSON.parse(body);
-
-    console.log('Received Whop webhook:', {
-      action: event.action,
-      userId: event.data?.user,
-      membershipId: event.data?.id,
-      fullData: event.data // Log full data structure to debug
-    });
 
     // Handle different webhook events (support both dot and underscore notation)
     switch (event.action) {
@@ -163,22 +122,15 @@ export async function POST(request: Request) {
         break;
 
       case 'payment_succeeded':
-        console.log('Payment succeeded for membership:', event.data?.id);
-        // Payment successful - membership should already be active via membership_went_valid
-        break;
-
       case 'payment_failed':
-        console.log('Payment failed for membership:', event.data?.id);
-        // Could send alert email to user here
-        break;
-
       default:
-        console.log('Unhandled webhook event:', event.action);
+        // Event received but not actively handled
+        break;
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    console.error('[API] Error processing webhook:', error);
     return NextResponse.json(
       { error: 'Webhook processing failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -191,11 +143,7 @@ export async function POST(request: Request) {
  * Fired when a user's subscription becomes active (trial started or payment succeeded)
  */
 async function handleMembershipWentValid(membership: WhopMembership) {
-  console.log('Processing membership_went_valid:', membership.id);
-  console.log('Full membership data:', JSON.stringify(membership, null, 2));
-
   if (!clientPromise) {
-    console.warn('MongoDB not configured, skipping database update');
     return;
   }
 
@@ -275,10 +223,8 @@ async function handleMembershipWentValid(membership: WhopMembership) {
       },
       { upsert: true }
     );
-
-    console.log(`Updated subscription for user ${userId} to ${status}`);
   } catch (error) {
-    console.error('Error handling membership.went_valid:', error);
+    console.error('[API] Error handling membership.went_valid:', error);
     throw error;
   }
 }
@@ -288,10 +234,7 @@ async function handleMembershipWentValid(membership: WhopMembership) {
  * Fired when a user's subscription expires or is cancelled
  */
 async function handleMembershipWentInvalid(membership: WhopMembership) {
-  console.log('Processing membership_went_invalid:', membership.id);
-
   if (!clientPromise) {
-    console.warn('MongoDB not configured, skipping database update');
     return;
   }
 
@@ -328,10 +271,8 @@ async function handleMembershipWentInvalid(membership: WhopMembership) {
         }
       }
     );
-
-    console.log(`Expired subscription for user ${userId}`);
   } catch (error) {
-    console.error('Error handling membership.went_invalid:', error);
+    console.error('[API] Error handling membership.went_invalid:', error);
     throw error;
   }
 }
@@ -341,10 +282,7 @@ async function handleMembershipWentInvalid(membership: WhopMembership) {
  * Fired when membership details change (e.g., cancellation scheduled)
  */
 async function handleMembershipUpdated(membership: WhopMembership) {
-  console.log('Processing membership update:', membership.id);
-
   if (!clientPromise) {
-    console.warn('MongoDB not configured, skipping database update');
     return;
   }
 
@@ -369,10 +307,8 @@ async function handleMembershipUpdated(membership: WhopMembership) {
         }
       }
     );
-
-    console.log(`Updated subscription details for user ${userId}`);
   } catch (error) {
-    console.error('Error handling membership.updated:', error);
+    console.error('[API] Error handling membership.updated:', error);
     throw error;
   }
 }

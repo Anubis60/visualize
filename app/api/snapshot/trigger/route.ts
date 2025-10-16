@@ -19,8 +19,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`🔄 Manual snapshot trigger for ${companyId}`)
-
     await captureCompanySnapshot(companyId)
 
     return NextResponse.json({
@@ -29,7 +27,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('❌ Manual snapshot trigger failed:', error)
+    console.error('[API] Manual snapshot trigger failed:', error)
     return NextResponse.json(
       {
         success: false,

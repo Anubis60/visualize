@@ -32,8 +32,8 @@ export default function CancellationsPage({ params }: { params: Promise<{ compan
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Cancellations Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

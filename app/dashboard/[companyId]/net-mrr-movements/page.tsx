@@ -31,8 +31,7 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
           setAnalytics(data)
           setLoading(false)
         })
-        .catch(err => {
-          console.error('Failed to fetch analytics:', err)
+        .catch(() => {
           setLoading(false)
         })
     })

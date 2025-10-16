@@ -24,8 +24,6 @@ export default function RefundsPage({ params }: { params: Promise<{ companyId: s
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 Refunds Page: Fetching analytics for company:', p.companyId)
-
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
@@ -38,8 +36,8 @@ export default function RefundsPage({ params }: { params: Promise<{ companyId: s
           }])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Refunds Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

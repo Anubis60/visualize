@@ -31,8 +31,8 @@ export default function DowngradesPage({ params }: { params: Promise<{ companyId
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Downgrades Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
       const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
 
       if (cachedSnapshot?.rawData?.transactions) {
-        console.log(`📦 Using cached transactions data from snapshot`)
         return NextResponse.json({
           data: cachedSnapshot.rawData.transactions,
           cached: true,
@@ -38,14 +37,13 @@ export async function GET(request: NextRequest) {
     })
 
     const data = await response.json()
-    console.log(JSON.stringify(data, null, 2))
 
     return NextResponse.json({
       ...data,
       cached: false,
     })
   } catch (error) {
-    console.error('❌ Error fetching transactions:', error)
+    console.error('[API] Error fetching transactions:', error)
     return NextResponse.json(
       { error: 'Failed to fetch transactions', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

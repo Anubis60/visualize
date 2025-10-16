@@ -31,7 +31,7 @@ export default function ReactivationsPage({ params }: { params: Promise<{ compan
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => console.error('❌ Reactivations Page: Failed to fetch data:', err))
+        .catch(err => // Error fetching data)
     })
   }, [params])
 

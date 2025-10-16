@@ -25,12 +25,9 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 Trials Page: Fetching analytics for company:', p.companyId)
-
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
-          console.log('📊 Trials Page: Received current data:', currentData)
           setAnalytics(currentData)
           // Create simple chart data from current metrics
           const now = new Date()
@@ -40,8 +37,8 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
           }])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Trials Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

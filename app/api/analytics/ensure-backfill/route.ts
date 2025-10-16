@@ -50,10 +50,10 @@ export async function GET(request: NextRequest) {
     // Run backfill in background (don't await to avoid timeout)
     backfillCompanyHistory(companyId)
       .then(() => {
-        // Backfill completed
+        // Backfill completed successfully
       })
       .catch((error) => {
-        console.error(`[BACKFILL] Failed for ${companyId}:`, error)
+        console.error(`[API] Backfill failed for ${companyId}:`, error)
       })
 
     return NextResponse.json({
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error ensuring backfill:', error)
+    console.error('[API] Error ensuring backfill:', error)
     return NextResponse.json(
       {
         error: 'Failed to check/trigger backfill',

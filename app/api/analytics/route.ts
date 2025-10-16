@@ -24,8 +24,6 @@ export async function GET(request: NextRequest) {
       const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
 
       if (cachedSnapshot?.rawData) {
-        console.log(`📦 Using cached snapshot from ${cachedSnapshot.timestamp.toISOString()}`)
-
         // Extract unique plans from cached data
         const cachedPlans = (cachedSnapshot.rawData.plans || []) as Plan[]
         const uniquePlans = cachedPlans
@@ -53,10 +51,6 @@ export async function GET(request: NextRequest) {
           snapshotDate: cachedSnapshot.date.toISOString(),
         })
       }
-
-      console.log('📡 No cached snapshot available, fetching from API...')
-    } else {
-      console.log('🔄 Force refresh requested, fetching from API...')
     }
 
     // Fetch ALL memberships using Whop SDK with pagination
@@ -115,17 +109,6 @@ export async function GET(request: NextRequest) {
       planData: m.plan ? planMap.get(m.plan.id) : undefined
     }))
 
-    console.log(`\n📊 Analytics API Summary:`)
-    console.log(`  Total memberships fetched: ${memberships.length}`)
-    console.log(`  Total plans fetched: ${allPlans.length}`)
-    console.log(`  Memberships with plan data: ${enrichedMemberships.filter(m => m.planData).length}`)
-
-    // Debug: Show raw sample data
-    console.log('\n🔍 Sample Membership (raw):')
-    console.log(JSON.stringify(memberships[0], null, 2))
-    console.log('\n🔍 Sample Plan (raw):')
-    console.log(JSON.stringify(allPlans[0], null, 2))
-
     // Calculate metrics with enriched data
     const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
@@ -133,14 +116,6 @@ export async function GET(request: NextRequest) {
     const activeUniqueSubscribers = getActiveUniqueSubscribers(enrichedMemberships)
     const arpu = calculateARPU(mrrData.total, activeUniqueSubscribers)
     const trialMetrics = calculateTrialMetrics(enrichedMemberships)
-
-    console.log(`\n💰 Final Metrics:`)
-    console.log(`  MRR: $${mrrData.total.toFixed(2)}`)
-    console.log(`  ARR: $${arr.toFixed(2)}`)
-    console.log(`  ARPU: $${arpu.toFixed(2)}`)
-    console.log(`  Active Unique Subscribers: ${activeUniqueSubscribers}`)
-    console.log(`  Active Memberships: ${subscriberMetrics.active}`)
-    console.log(`  Trials: ${trialMetrics.totalTrials} (${trialMetrics.conversionRate.toFixed(1)}% conversion)\n`)
 
     // Extract unique plans with their access pass titles
     const uniquePlans = allPlans
@@ -197,15 +172,13 @@ export async function GET(request: NextRequest) {
           plansCount: allPlans.length,
         }
       })
-      console.log(`✅ Stored daily snapshot for ${companyId}`)
     } catch (snapshotError) {
-      console.error('Failed to store metrics snapshot:', snapshotError)
-      // Don't fail the request if snapshot storage fails
+      console.error('[API] Failed to store metrics snapshot:', snapshotError)
     }
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Error calculating analytics:', error)
+    console.error('[API] Error calculating analytics:', error)
     return NextResponse.json(
       { error: 'Failed to calculate analytics' },
       { status: 500 }

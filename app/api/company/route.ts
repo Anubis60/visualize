@@ -21,8 +21,6 @@ export async function GET(request: NextRequest) {
       const cachedCompany = await companyRepository.findByWhopCompanyId(companyId)
 
       if (cachedCompany) {
-        console.log(`📦 Using cached company data from companies collection`)
-
         // Extract logo and bannerImage from rawData if available (rawData has the full Whop API response)
         let logo: unknown = cachedCompany.logo
         let bannerImage: unknown = undefined
@@ -38,9 +36,6 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        console.log(`📦 Logo from cache:`, logo)
-        console.log(`📦 Banner from cache:`, bannerImage)
-
         return NextResponse.json({
           id: cachedCompany.companyId,
           title: cachedCompany.title,
@@ -54,7 +49,6 @@ export async function GET(request: NextRequest) {
       const cachedSnapshot = await metricsRepository.getLatestSnapshotWithRawData(companyId)
 
       if (cachedSnapshot?.rawData?.company) {
-        console.log(`📦 Using cached company data from snapshot`)
         return NextResponse.json({
           ...cachedSnapshot.rawData.company,
           cached: true,
@@ -79,10 +73,8 @@ export async function GET(request: NextRequest) {
         businessType: company.businessType || undefined,
         rawData: company, // Store full Whop company object
       })
-      console.log(`✅ Company ${companyId} (${company.title}) registered for snapshots`)
     } catch (error) {
-      console.error('Failed to register company:', error)
-      // Don't fail the request if registration fails
+      console.error('[API] Failed to register company:', error)
     }
 
     return NextResponse.json({
@@ -93,7 +85,7 @@ export async function GET(request: NextRequest) {
       cached: false,
     })
   } catch (error) {
-    console.error('Error fetching company data:', error)
+    console.error('[API] Error fetching company data:', error)
     return NextResponse.json(
       { error: 'Failed to fetch company data' },
       { status: 500 }

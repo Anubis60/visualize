@@ -25,8 +25,6 @@ export default function CashFlowPage({ params }: { params: Promise<{ companyId: 
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 Cash Flow Page: Fetching analytics for company:', p.companyId)
-
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
@@ -39,8 +37,8 @@ export default function CashFlowPage({ params }: { params: Promise<{ companyId: 
           }])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Cash Flow Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

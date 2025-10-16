@@ -12,43 +12,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('\n=== RAW DATA FOR COMPANY:', companyId, '===')
-
-    // Fetch and log raw memberships
-    console.log('\n--- RAW MEMBERSHIPS (ALL) ---')
-    const membershipsUrl = `https://api.whop.com/api/v1/memberships?company_id=${companyId}`
-    const membershipsRes = await fetch(membershipsUrl, {
-      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
-    })
-    const membershipsData = await membershipsRes.json()
-    console.log(JSON.stringify(membershipsData, null, 2))
-
-    // Fetch and log raw transactions
-    console.log('\n--- RAW TRANSACTIONS/PAYMENTS (ALL) ---')
-    const paymentsUrl = `https://api.whop.com/api/v1/payments?company_id=${companyId}`
-    const paymentsRes = await fetch(paymentsUrl, {
-      headers: { Authorization: `Bearer ${process.env.WHOP_API_KEY}` }
-    })
-    const paymentsData = await paymentsRes.json()
-    console.log(JSON.stringify(paymentsData, null, 2))
-
-    // Fetch and log historical data
-    console.log('\n--- HISTORICAL DATA (1 YEAR BACK - ALL) ---')
-    const { metricsRepository } = await import('@/lib/db/repositories/MetricsRepository')
-    const historicalData = await metricsRepository.getDailyMetrics(companyId, 365)
-    console.log(JSON.stringify(historicalData, null, 2))
-
-    console.log('\n=== END RAW DATA FOR', companyId, '===\n')
-
     return NextResponse.json({
       success: true,
-      message: 'Raw data logged to Vercel server logs',
+      message: 'Debug endpoint accessed',
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('Error logging raw data:', error)
+    console.error('[API] Error in debug endpoint:', error)
     return NextResponse.json(
-      { error: 'Failed to log raw data' },
+      { error: 'Failed to process debug request' },
       { status: 500 }
     )
   }

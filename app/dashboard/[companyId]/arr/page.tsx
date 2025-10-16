@@ -21,22 +21,17 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 ARR Page: Fetching analytics for company:', p.companyId)
-
       // Fetch current analytics and up to 1 year of historical data
       Promise.all([
         fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
         fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
         .then(([currentData, historicalResponse]) => {
-          console.log('📊 ARR Page: Received current data:', currentData)
-          console.log('📈 ARR Page: Received historical data:', historicalResponse)
           setAnalytics(currentData)
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ ARR Page: Failed to fetch data:', err)
+        .catch(() => {
           setLoading(false)
         })
     })

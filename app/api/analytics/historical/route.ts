@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       count: metrics.length,
     })
   } catch (error) {
-    console.error('Error fetching historical analytics:', error)
+    console.error('[API] Error fetching historical analytics:', error)
     return NextResponse.json(
       { error: 'Failed to fetch historical analytics' },
       { status: 500 }

@@ -32,8 +32,7 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('Failed to fetch data:', err)
+        .catch(() => {
           setLoading(false)
         })
     })

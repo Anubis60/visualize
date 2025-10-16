@@ -23,21 +23,17 @@ export default function RevenuePage({ params }: { params: Promise<{ companyId: s
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 Revenue Page: Fetching analytics for company:', p.companyId)
-
       Promise.all([
         fetch(`/api/analytics/enriched?company_id=${p.companyId}`).then(res => res.json()),
         fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
         .then(([currentData, historicalResponse]) => {
-          console.log('📊 Revenue Page: Received current data:', currentData)
-          console.log('📈 Revenue Page: Received historical data:', historicalResponse)
           setAnalytics(currentData)
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Revenue Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

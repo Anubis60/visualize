@@ -24,8 +24,6 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 CLV Page: Fetching analytics for company:', p.companyId)
-
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
@@ -38,8 +36,8 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
           }])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ CLV Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

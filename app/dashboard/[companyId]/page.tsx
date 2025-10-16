@@ -35,40 +35,24 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [historicalLoading, setHistoricalLoading] = useState(false)
+  const [dailyLoading, setDailyLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        console.log('Dashboard: Fetching analytics for company:', companyId)
-
         // First, ensure historical data exists (trigger backfill if needed)
-        console.log('Checking if historical data exists...')
-        const backfillCheck = await fetch(`/api/analytics/ensure-backfill?company_id=${companyId}`)
-        const backfillStatus = await backfillCheck.json()
-        console.log('Backfill status:', backfillStatus)
-
-        if (backfillStatus.backfillStarted) {
-          console.log('Historical data backfill started. This will take a few minutes.')
-        }
+        await fetch(`/api/analytics/ensure-backfill?company_id=${companyId}`)
 
         // Fetch analytics
         const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
-        console.log('Dashboard: Response status:', analyticsResponse.status)
         if (!analyticsResponse.ok) {
           throw new Error('Failed to fetch analytics')
         }
         const data = await analyticsResponse.json()
-        console.log('Dashboard: Received data:', data)
-        console.log('MRR:', data.mrr?.total, '| ARR:', data.arr, '| ARPU:', data.arpu)
-        console.log('Active Subscribers:', data.activeUniqueSubscribers)
         setAnalytics(data)
-
-        // Trigger server-side raw data logging to Vercel logs
-        console.log('Triggering raw data log to Vercel...')
-        await fetch(`/api/debug/raw-data-full?company_id=${companyId}`)
-        console.log('Raw data logged to Vercel server logs - check Vercel dashboard logs')
       } catch (err) {
-        console.error('Dashboard: Error fetching analytics:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)
@@ -78,6 +62,56 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
     fetchAnalytics()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const handleHistoricalBackfill = async () => {
+    setHistoricalLoading(true)
+    setMessage(null)
+    try {
+      const response = await fetch('/api/manual/historical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_id: companyId })
+      })
+      const data = await response.json()
+      if (data.success) {
+        setMessage(`Historical backfill completed! Generated ${data.stats.snapshotsGenerated} snapshots from ${data.stats.dateRange.start} to ${data.stats.dateRange.end}`)
+      } else {
+        setMessage(`Error: ${data.error}`)
+      }
+    } catch (err) {
+      setMessage(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setHistoricalLoading(false)
+    }
+  }
+
+  const handleDailySnapshot = async () => {
+    setDailyLoading(true)
+    setMessage(null)
+    try {
+      const response = await fetch('/api/manual/daily', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_id: companyId })
+      })
+      const data = await response.json()
+      if (data.success) {
+        setMessage(`Daily snapshot completed! MRR: $${data.snapshot.mrr.toFixed(2)}, Active Subscribers: ${data.snapshot.activeSubscribers}`)
+        // Refresh analytics
+        const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
+        if (analyticsResponse.ok) {
+          const analyticsData = await analyticsResponse.json()
+          setAnalytics(analyticsData)
+        }
+      } else {
+        setMessage(`Error: ${data.error}`)
+      }
+    } catch (err) {
+      setMessage(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setDailyLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -113,7 +147,28 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
             <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
             <p className="text-gray-600 mt-1">Your Whop analytics at a glance</p>
           </div>
+          <div className="flex gap-4">
+            <button
+              onClick={handleHistoricalBackfill}
+              disabled={historicalLoading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {historicalLoading ? 'Running...' : 'Run Historical Backfill'}
+            </button>
+            <button
+              onClick={handleDailySnapshot}
+              disabled={dailyLoading}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {dailyLoading ? 'Running...' : 'Run Daily Snapshot'}
+            </button>
+          </div>
         </div>
+        {message && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900">{message}</p>
+          </div>
+        )}
       </div>
 
       {/* Metrics Grid */}

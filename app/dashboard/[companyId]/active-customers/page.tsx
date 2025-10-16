@@ -23,8 +23,6 @@ export default function ActiveCustomersPage({ params }: { params: Promise<{ comp
 
   useEffect(() => {
     params.then((p) => {
-      console.log('🔍 Active Customers Page: Fetching analytics for company:', p.companyId)
-
       Promise.all([
         fetch(`/api/analytics/enriched?company_id=${p.companyId}`).then(res => res.json()),
         fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
@@ -34,8 +32,8 @@ export default function ActiveCustomersPage({ params }: { params: Promise<{ comp
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => {
-          console.error('❌ Active Customers Page: Failed to fetch data:', err)
+        .catch(() => {
+          // Error fetching data
           setLoading(false)
         })
     })

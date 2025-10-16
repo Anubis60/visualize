@@ -39,14 +39,6 @@ export async function POST(request: Request) {
       ? `${baseUrl}/dashboard/${companyId}?checkout=success`
       : `${baseUrl}?checkout=success`;
 
-    console.log('Creating Whop checkout with:', {
-      planId,
-      accessPassId,
-      redirectUrl,
-      userId,
-      companyId
-    });
-
     // Use REST API instead of SDK because SDK doesn't return purchase_url
     const response = await fetch('https://api.whop.com/api/v1/checkout_configurations', {
       method: 'POST',
@@ -72,7 +64,6 @@ export async function POST(request: Request) {
     }
 
     const checkoutData = await response.json();
-    console.log('Whop REST API response:', JSON.stringify(checkoutData, null, 2));
 
     // Update user and create subscription in database (if MongoDB is configured)
     if (clientPromise) {
@@ -126,11 +117,8 @@ export async function POST(request: Request) {
           },
           { upsert: true }
         );
-
-        console.log('Created subscription in MongoDB for user:', userId);
       } catch (dbError) {
-        console.warn('MongoDB error in checkout, continuing without DB update:', dbError);
-        // Continue even if database update fails - checkout was successful
+        console.error('[API] MongoDB error in checkout:', dbError);
       }
     }
 
@@ -141,7 +129,7 @@ export async function POST(request: Request) {
       planId: checkoutData.plan?.id || planId
     });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('[API] Error creating checkout session:', error);
     return NextResponse.json(
       { error: 'Failed to create checkout session', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

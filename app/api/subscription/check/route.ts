@@ -34,13 +34,6 @@ export async function GET(request: Request) {
       ]
     });
 
-    console.log('Subscription check:', {
-      companyId,
-      foundSubscription: !!subscription,
-      subscriptionStatus: subscription?.status,
-      trialEndsAt: subscription?.trialEndsAt
-    });
-
     // If no subscription exists, no access
     if (!subscription) {
       return NextResponse.json({
@@ -80,7 +73,7 @@ export async function GET(request: Request) {
       subscriptionInfo
     });
   } catch (error) {
-    console.error('Error checking subscription:', error);
+    console.error('[API] Error checking subscription:', error);
     return NextResponse.json(
       { error: 'Failed to check subscription status' },
       { status: 500 }
