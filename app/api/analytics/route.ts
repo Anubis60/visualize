@@ -150,6 +150,8 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     }
 
+    console.log(JSON.stringify(response, null, 2))
+
     // Store snapshot in MongoDB for historical tracking
     try {
       await metricsRepository.upsertDailySnapshot(companyId, {
@@ -173,12 +175,12 @@ export async function GET(request: NextRequest) {
         }
       })
     } catch (snapshotError) {
-      console.error('[API] Failed to store metrics snapshot:', snapshotError)
+// console.error('[API] Failed to store metrics snapshot:', snapshotError)
     }
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('[API] Error calculating analytics:', error)
+// console.error('[API] Error calculating analytics:', error)
     return NextResponse.json(
       { error: 'Failed to calculate analytics' },
       { status: 500 }
