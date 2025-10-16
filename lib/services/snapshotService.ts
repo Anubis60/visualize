@@ -228,7 +228,6 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     })
 
   } catch (error) {
-    console.error(`[SNAPSHOT] Failed to capture snapshot for ${companyId}:`, error)
     throw error
   }
 }
@@ -254,7 +253,6 @@ export async function captureAllSnapshots(): Promise<void> {
     }
 
   } catch (error) {
-    console.error('[SNAPSHOT] Failed to capture snapshots:', error)
     throw error
   }
 }

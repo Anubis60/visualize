@@ -175,12 +175,10 @@ export async function GET(request: NextRequest) {
         }
       })
     } catch (snapshotError) {
-// console.error('[API] Failed to store metrics snapshot:', snapshotError)
     }
 
     return NextResponse.json(response)
   } catch (error) {
-// console.error('[API] Error calculating analytics:', error)
     return NextResponse.json(
       { error: 'Failed to calculate analytics' },
       { status: 500 }

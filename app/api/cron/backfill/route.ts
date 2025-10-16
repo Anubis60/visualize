@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
 
     if (companyId) {
       // Backfill specific company
-      console.log(`Backfill triggered for company: ${companyId}`)
       await backfillCompanyHistory(companyId)
 
       return NextResponse.json({
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // Backfill all companies that need it
-      console.log('Backfill triggered for all companies needing historical data')
       await backfillAllCompaniesNeedingHistory()
 
       return NextResponse.json({
@@ -49,7 +47,6 @@ export async function GET(request: NextRequest) {
       })
     }
   } catch (error) {
-    console.error('Backfill failed:', error)
     return NextResponse.json(
       {
         success: false,

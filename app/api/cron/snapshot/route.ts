@@ -49,7 +49,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[CRON] Cron job failed:', error)
     return NextResponse.json(
       {
         success: false,

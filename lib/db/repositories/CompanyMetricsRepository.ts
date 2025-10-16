@@ -11,14 +11,11 @@ export class CompanyMetricsRepository {
    * Get company metrics document
    */
   async getCompanyMetrics(companyId: string): Promise<CompanyMetrics | null> {
-    console.log(`[DB] Getting metrics for company: ${companyId}`)
     const collection = await this.getCollection()
     const result = await collection.findOne({ companyId })
 
     if (result) {
-      console.log(`[DB] Found metrics document - Last updated: ${result.lastUpdated}, History entries: ${result.history?.length || 0}`)
     } else {
-      console.log(`[DB] No metrics document found for company: ${companyId}`)
     }
 
     return result
@@ -31,10 +28,6 @@ export class CompanyMetricsRepository {
     companyId: string,
     rawData: CompanyMetrics['rawData']
   ): Promise<void> {
-    console.log(`[DB] Storing raw data for company: ${companyId}`)
-    console.log(`[DB] - Memberships: ${rawData.memberships.length}`)
-    console.log(`[DB] - Transactions: ${rawData.transactions.length}`)
-    console.log(`[DB] - Plans: ${rawData.plans.length}`)
 
     const collection = await this.getCollection()
 
@@ -54,7 +47,6 @@ export class CompanyMetricsRepository {
       { upsert: true }
     )
 
-    console.log(`[DB] Raw data stored successfully`)
   }
 
   /**
@@ -64,7 +56,6 @@ export class CompanyMetricsRepository {
     companyId: string,
     snapshot: DailySnapshot
   ): Promise<void> {
-    console.log(`[DB] Upserting daily snapshot for ${companyId} on ${snapshot.date}`)
 
     const collection = await this.getCollection()
 
@@ -85,7 +76,6 @@ export class CompanyMetricsRepository {
       { upsert: true }
     )
 
-    console.log(`[DB] Snapshot for ${snapshot.date} upserted successfully`)
   }
 
   /**
@@ -95,7 +85,6 @@ export class CompanyMetricsRepository {
     companyId: string,
     snapshots: DailySnapshot[]
   ): Promise<void> {
-    console.log(`[DB] Bulk upserting ${snapshots.length} snapshots for ${companyId}`)
 
     const collection = await this.getCollection()
 
@@ -120,14 +109,12 @@ export class CompanyMetricsRepository {
       { upsert: true }
     )
 
-    console.log(`[DB] Bulk upsert completed - ${snapshots.length} snapshots added`)
   }
 
   /**
    * Mark backfill as completed
    */
   async markBackfillCompleted(companyId: string): Promise<void> {
-    console.log(`[DB] Marking backfill completed for ${companyId}`)
 
     const collection = await this.getCollection()
 
@@ -141,7 +128,6 @@ export class CompanyMetricsRepository {
       }
     )
 
-    console.log(`[DB] Backfill marked as completed`)
   }
 
   /**
@@ -152,7 +138,6 @@ export class CompanyMetricsRepository {
     startDate: string,
     endDate: string
   ): Promise<DailySnapshot[]> {
-    console.log(`[DB] Getting historical snapshots for ${companyId} from ${startDate} to ${endDate}`)
 
     const collection = await this.getCollection()
     const doc = await collection.findOne(
@@ -176,7 +161,6 @@ export class CompanyMetricsRepository {
     )
 
     const snapshots = doc?.history || []
-    console.log(`[DB] Found ${snapshots.length} snapshots in date range`)
 
     return snapshots
   }
@@ -186,7 +170,6 @@ export class CompanyMetricsRepository {
    */
   async getTodaySnapshot(companyId: string): Promise<DailySnapshot | null> {
     const today = new Date().toISOString().split('T')[0]
-    console.log(`[DB] Getting today's snapshot for ${companyId} (${today})`)
 
     const collection = await this.getCollection()
     const doc = await collection.findOne(
@@ -197,9 +180,7 @@ export class CompanyMetricsRepository {
     const snapshot = doc?.history?.[0] || null
 
     if (snapshot) {
-      console.log(`[DB] Found today's snapshot`)
     } else {
-      console.log(`[DB] No snapshot found for today`)
     }
 
     return snapshot

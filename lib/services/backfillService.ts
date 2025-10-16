@@ -257,7 +257,6 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
     await companyRepository.markBackfillCompleted(companyId)
 
   } catch (error) {
-    console.error(`[BACKFILL] Failed to backfill history for ${companyId}:`, error)
     throw error
   }
 }
@@ -278,7 +277,6 @@ export async function backfillAllCompaniesNeedingHistory(): Promise<void> {
     }
 
   } catch (error) {
-    console.error('[BACKFILL] Failed to backfill companies:', error)
     throw error
   }
 }

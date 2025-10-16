@@ -78,7 +78,6 @@ async function verifyWhopSignature(payload: string, signature: string | null) {
 
     return expectedSignature === receivedSignature;
   } catch (error) {
-    console.error('[API] Error verifying webhook signature:', error);
     return false;
   }
 }
@@ -130,7 +129,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('[API] Error processing webhook:', error);
     return NextResponse.json(
       { error: 'Webhook processing failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -224,7 +222,6 @@ async function handleMembershipWentValid(membership: WhopMembership) {
       { upsert: true }
     );
   } catch (error) {
-    console.error('[API] Error handling membership.went_valid:', error);
     throw error;
   }
 }
@@ -272,7 +269,6 @@ async function handleMembershipWentInvalid(membership: WhopMembership) {
       }
     );
   } catch (error) {
-    console.error('[API] Error handling membership.went_invalid:', error);
     throw error;
   }
 }
@@ -308,7 +304,6 @@ async function handleMembershipUpdated(membership: WhopMembership) {
       }
     );
   } catch (error) {
-    console.error('[API] Error handling membership.updated:', error);
     throw error;
   }
 }

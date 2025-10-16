@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[API] Manual snapshot trigger failed:', error)
     return NextResponse.json(
       {
         success: false,

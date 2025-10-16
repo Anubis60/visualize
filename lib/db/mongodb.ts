@@ -59,8 +59,6 @@ export async function initializeIndexes(): Promise<void> {
       { name: 'timestamp_idx' }
     )
 
-    console.log('[DATABASE] Indexes created successfully')
   } catch (error) {
-    console.error('[DATABASE] Failed to create indexes:', error)
   }
 }

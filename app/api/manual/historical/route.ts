@@ -14,8 +14,6 @@ import { DailySnapshot } from '@/lib/db/models/CompanyMetrics'
  * Fetches data from Whop API and generates 365 days of historical snapshots
  */
 export async function POST(request: NextRequest) {
-  console.log('[MANUAL HISTORICAL] ========================================')
-  console.log('[MANUAL HISTORICAL] Starting manual historical backfill')
 
   try {
     const body = await request.json()
@@ -28,23 +26,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`[MANUAL HISTORICAL] Company ID: ${companyId}`)
 
     // Step 1: Fetch raw data from Whop API
-    console.log('[MANUAL HISTORICAL] Step 1: Fetching memberships from Whop API...')
     const allMemberships = await whopClient.getAllMemberships(companyId)
-    console.log(`[MANUAL HISTORICAL] ✓ Fetched ${allMemberships.length} memberships`)
 
-    console.log('[MANUAL HISTORICAL] Step 2: Fetching plans from Whop API...')
     const allPlans = await whopClient.getAllPlans(companyId)
-    console.log(`[MANUAL HISTORICAL] ✓ Fetched ${allPlans.length} plans`)
 
-    console.log('[MANUAL HISTORICAL] Step 3: Fetching payments from Whop API...')
     const payments = await whopClient.getAllPayments(companyId)
-    console.log(`[MANUAL HISTORICAL] ✓ Fetched ${payments.length} payments`)
 
     // Step 2: Store raw data in MongoDB
-    console.log('[MANUAL HISTORICAL] Step 4: Storing raw data in MongoDB...')
     const sampleData = allMemberships[0] || {}
     const companyData = (sampleData as { company?: { title?: string; route?: string } }).company
 
@@ -59,10 +49,8 @@ export async function POST(request: NextRequest) {
       plans: allPlans,
       transactions: payments,
     })
-    console.log('[MANUAL HISTORICAL] ✓ Raw data stored')
 
     // Step 3: Generate 365 days of historical snapshots
-    console.log('[MANUAL HISTORICAL] Step 5: Generating 365 days of historical snapshots...')
 
     const planMap = new Map<string, Plan>()
     allPlans.forEach((plan) => {
@@ -149,26 +137,15 @@ export async function POST(request: NextRequest) {
 
       // Log progress every 50 days
       if ((daysAgo % 50 === 0) || daysAgo === 0) {
-        console.log(`[MANUAL HISTORICAL] Progress: ${366 - daysAgo}/366 days calculated`)
       }
     }
 
     // Step 4: Store all snapshots in MongoDB
-    console.log('[MANUAL HISTORICAL] Step 6: Storing 366 snapshots in MongoDB...')
     await companyMetricsRepository.bulkUpsertSnapshots(companyId, snapshots)
-    console.log('[MANUAL HISTORICAL] ✓ All snapshots stored')
 
     // Step 5: Mark backfill as completed
-    console.log('[MANUAL HISTORICAL] Step 7: Marking backfill as completed...')
     await companyMetricsRepository.markBackfillCompleted(companyId)
-    console.log('[MANUAL HISTORICAL] ✓ Backfill marked complete')
 
-    console.log('[MANUAL HISTORICAL] ========================================')
-    console.log('[MANUAL HISTORICAL] COMPLETED SUCCESSFULLY')
-    console.log(`[MANUAL HISTORICAL] - Fetched from Whop API: ${allMemberships.length} memberships, ${payments.length} payments`)
-    console.log(`[MANUAL HISTORICAL] - Generated: 366 daily snapshots`)
-    console.log(`[MANUAL HISTORICAL] - Date range: ${snapshots[0].date} to ${snapshots[snapshots.length - 1].date}`)
-    console.log('[MANUAL HISTORICAL] ========================================')
 
     return NextResponse.json({
       success: true,
@@ -186,7 +163,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('[MANUAL HISTORICAL] ERROR:', error)
     return NextResponse.json(
       {
         success: false,

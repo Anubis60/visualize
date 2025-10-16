@@ -83,7 +83,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('[API] Error checking backfill status:', error)
     return NextResponse.json(
       {
         error: 'Failed to check backfill status',

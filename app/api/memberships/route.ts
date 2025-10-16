@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
       cached: false,
     })
   } catch (error) {
-// console.error('[API] Error fetching memberships:', error)
     return NextResponse.json(
       { error: 'Failed to fetch memberships' },
       { status: 500 }

@@ -154,7 +154,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('[API] Error calculating enriched analytics:', error)
     return NextResponse.json(
       { error: 'Failed to calculate analytics', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -118,7 +118,6 @@ export async function POST(request: Request) {
           { upsert: true }
         );
       } catch (dbError) {
-        console.error('[API] MongoDB error in checkout:', dbError);
       }
     }
 
@@ -129,7 +128,6 @@ export async function POST(request: Request) {
       planId: checkoutData.plan?.id || planId
     });
   } catch (error) {
-    console.error('[API] Error creating checkout session:', error);
     return NextResponse.json(
       { error: 'Failed to create checkout session', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

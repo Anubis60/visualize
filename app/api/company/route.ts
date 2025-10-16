@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
         rawData: company, // Store full Whop company object
       })
     } catch (error) {
-// console.error('[API] Failed to register company:', error)
     }
 
     return NextResponse.json({
@@ -85,7 +84,6 @@ export async function GET(request: NextRequest) {
       cached: false,
     })
   } catch (error) {
-// console.error('[API] Error fetching company data:', error)
     return NextResponse.json(
       { error: 'Failed to fetch company data' },
       { status: 500 }

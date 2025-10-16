@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[API] Error in debug endpoint:', error)
     return NextResponse.json(
       { error: 'Failed to process debug request' },
       { status: 500 }
