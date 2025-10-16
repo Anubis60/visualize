@@ -31,7 +31,7 @@ export default function ContractionMRRPage({ params }: { params: Promise<{ compa
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

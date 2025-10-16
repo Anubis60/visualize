@@ -31,7 +31,7 @@ export default function ChurnedMRRPage({ params }: { params: Promise<{ companyId
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

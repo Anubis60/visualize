@@ -31,7 +31,7 @@ export default function ExpansionMRRPage({ params }: { params: Promise<{ company
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

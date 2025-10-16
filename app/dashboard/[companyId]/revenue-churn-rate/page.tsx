@@ -31,7 +31,7 @@ export default function RevenueChurnRatePage({ params }: { params: Promise<{ com
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

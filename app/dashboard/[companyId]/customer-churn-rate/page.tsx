@@ -31,7 +31,7 @@ export default function CustomerChurnRatePage({ params }: { params: Promise<{ co
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

@@ -31,7 +31,7 @@ export default function FailedChargesPage({ params }: { params: Promise<{ compan
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 

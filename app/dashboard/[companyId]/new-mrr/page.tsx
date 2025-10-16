@@ -31,7 +31,7 @@ export default function NewMRRPage({ params }: { params: Promise<{ companyId: st
           setHistoricalData(historicalResponse.data || [])
           setLoading(false)
         })
-        .catch(err => // Error fetching data)
+        .catch(() => setLoading(false))
     })
   }, [params])
 
