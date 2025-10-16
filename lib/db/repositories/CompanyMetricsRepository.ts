@@ -70,7 +70,12 @@ export class CompanyMetricsRepository {
     await collection.updateOne(
       { companyId },
       {
-        $push: { history: snapshot },
+        $push: {
+          history: {
+            $each: [snapshot],
+            $sort: { date: 1 } // Sort chronologically (oldest to newest)
+          }
+        },
         $set: { lastUpdated: new Date() }
       },
       { upsert: true }
@@ -99,11 +104,16 @@ export class CompanyMetricsRepository {
       }
     )
 
-    // Add all new snapshots
+    // Add all new snapshots in chronological order
     await collection.updateOne(
       { companyId },
       {
-        $push: { history: { $each: snapshots } },
+        $push: {
+          history: {
+            $each: snapshots,
+            $sort: { date: 1 } // Sort chronologically (oldest to newest)
+          }
+        },
         $set: { lastUpdated: new Date() }
       },
       { upsert: true }
