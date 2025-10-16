@@ -35,6 +35,8 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     other: 0,
   }
 
+  console.log('\n[MRR DEBUG] Total memberships received:', memberships.length)
+
   const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
 
   const activeMemberships = memberships.filter(m => {
@@ -45,12 +47,28 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     return isActive && m.planData
   })
 
+  console.log('[MRR DEBUG] Active memberships with plan data:', activeMemberships.length)
+
+  // Debug: Show all memberships
+  memberships.forEach((m, i) => {
+    console.log(`[MRR DEBUG] Membership ${i}:`, {
+      status: m.status,
+      canceledAt: m.canceledAt,
+      expiresAt: m.expiresAt,
+      hasPlanData: !!m.planData,
+      planType: m.planData?.planType,
+      renewalPrice: m.planData?.rawRenewalPrice,
+      billingPeriod: m.planData?.billingPeriod
+    })
+  })
+
   activeMemberships.forEach(membership => {
     const planData = membership.planData
     if (!planData) return
 
     // Skip one-time or free plans
     if (planData.planType === 'one_time' || planData.rawRenewalPrice === 0) {
+      console.log('[MRR DEBUG] Skipping - one-time or free plan')
       return
     }
 
@@ -60,6 +78,13 @@ export function calculateMRR(memberships: Membership[]): MRRData {
 
     // Normalize to monthly (30 days)
     const monthlyRevenue = (price / billingPeriod) * 30
+
+    console.log('[MRR DEBUG] Plan:', {
+      title: planData.accessPass?.title,
+      price,
+      billingPeriod,
+      monthlyRevenue
+    })
 
     // Categorize by billing period
     if (billingPeriod === 30) {
@@ -74,6 +99,10 @@ export function calculateMRR(memberships: Membership[]): MRRData {
   })
 
   const total = breakdown.monthly + breakdown.annual + breakdown.quarterly + breakdown.other
+
+  console.log('[MRR DEBUG] Final breakdown:', breakdown)
+  console.log('[MRR DEBUG] Total MRR:', total)
+  console.log('[MRR DEBUG] ==================\n')
 
   return {
     total,
