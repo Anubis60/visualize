@@ -12,18 +12,12 @@ import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
  * Includes company info, memberships, plans, transactions, and calculated metrics
  */
 export async function captureCompanySnapshot(companyId: string): Promise<void> {
-  console.log(`📸 Starting snapshot capture for company ${companyId}`)
-
   try {
     // 1. Fetch ALL memberships using whopClient
-    console.log('  Fetching memberships...')
     const allMemberships = await whopClient.getAllMemberships(companyId)
-    console.log(`  Total memberships fetched: ${allMemberships.length}`)
 
     // 2. Fetch ALL plans using whopClient
-    console.log('  Fetching plans...')
     const allPlans = await whopClient.getAllPlans(companyId)
-    console.log(`  Total plans fetched: ${allPlans.length}`)
 
     // 3. Update company record in database
     const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
@@ -39,12 +33,9 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       businessType: undefined,
       rawData: companyData || {},
     })
-    console.log('  Company data updated in database')
 
     // 4. Fetch ALL payments using whopClient
-    console.log('  Fetching payments...')
     const payments = await whopClient.getAllPayments(companyId)
-    console.log(`  Total payments fetched: ${payments.length}`)
 
     // 5. Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
@@ -58,7 +49,6 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     }))
 
     // 6. Calculate all metrics
-    console.log('  Calculating all metrics...')
     const mrrData = calculateMRR(enrichedMemberships)
     const arr = calculateARR(mrrData.total)
     const subscriberMetrics = calculateSubscriberMetrics(enrichedMemberships)
@@ -90,7 +80,6 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     }).length
 
     // 7. Store comprehensive snapshot in MongoDB
-    console.log('  Storing comprehensive snapshot...')
     await metricsRepository.upsertDailySnapshot(companyId, {
       mrr: {
         total: mrrData.total,
@@ -238,15 +227,8 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
       }
     })
 
-    console.log(`✅ Snapshot captured successfully for ${companyId}`)
-    console.log(`  - Memberships: ${allMemberships.length}`)
-    console.log(`  - Plans: ${allPlans.length}`)
-    console.log(`  - Payments: ${payments.length}`)
-    console.log(`  - MRR: $${mrrData.total.toFixed(2)}`)
-    console.log(`  - ARR: $${arr.toFixed(2)}`)
-
   } catch (error) {
-    console.error(`❌ Failed to capture snapshot for ${companyId}:`, error)
+    console.error(`[SNAPSHOT] Failed to capture snapshot for ${companyId}:`, error)
     throw error
   }
 }
@@ -255,8 +237,6 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
  * Captures snapshots for all registered companies in the database
  */
 export async function captureAllSnapshots(): Promise<void> {
-  console.log('📸 Starting snapshot capture for all registered companies...')
-
   try {
     // Import company repository
     const { companyRepository } = await import('@/lib/db/repositories/CompanyRepository')
@@ -265,20 +245,16 @@ export async function captureAllSnapshots(): Promise<void> {
     const companies = await companyRepository.getAllCompanies()
 
     if (companies.length === 0) {
-      console.log('⚠️  No companies registered yet. Companies will be registered when users first visit their dashboard.')
       return
     }
-
-    console.log(`Found ${companies.length} registered compan${companies.length === 1 ? 'y' : 'ies'}`)
 
     for (const company of companies) {
       await captureCompanySnapshot(company.companyId)
       await companyRepository.updateLastSync(company.companyId)
     }
 
-    console.log('✅ All snapshots captured successfully')
   } catch (error) {
-    console.error('❌ Failed to capture snapshots:', error)
+    console.error('[SNAPSHOT] Failed to capture snapshots:', error)
     throw error
   }
 }

@@ -15,45 +15,41 @@ let snapshotJob: ScheduledTask | null = null
 export function initializeCronJobs() {
   const isVercel = process.env.VERCEL === '1'
 
-  console.log('🚀 Cron System Initialization')
-  console.log('================================')
+  console.log('[CRON] Cron System Initialization')
+  console.log('[CRON] ================================')
 
   if (isVercel) {
     // On Vercel - use Vercel Cron (persistent across deployments)
-    console.log('☁️  Platform: Vercel')
-    console.log('📅 Active Cron Jobs:')
-    console.log('   1. Daily Snapshot Capture')
-    console.log('      - Path: /api/cron/snapshot')
-    console.log('      - Schedule: 5:00 AM UTC daily (0 5 * * *)')
-    console.log('      - Persists: ✅ Yes (survives all deployments)')
-    console.log('      - Managed by: vercel.json configuration')
-    console.log('')
-    console.log('💡 Snapshots capture automatically when users first visit their dashboard')
-    console.log('💡 Companies auto-register and are included in next daily snapshot')
+    console.log('[CRON] Platform: Vercel')
+    console.log('[CRON] Active Cron Jobs:')
+    console.log('[CRON]   1. Daily Snapshot Capture')
+    console.log('[CRON]      - Path: /api/cron/snapshot')
+    console.log('[CRON]      - Schedule: 5:00 AM UTC daily (0 5 * * *)')
+    console.log('[CRON]      - Persists: Yes (survives all deployments)')
+    console.log('[CRON]      - Managed by: vercel.json configuration')
   } else {
     // Local development - use node-cron
-    console.log('💻 Platform: Local Development')
-    console.log('📅 Setting up node-cron for testing...')
+    console.log('[CRON] Platform: Local Development')
+    console.log('[CRON] Setting up node-cron for testing...')
 
     snapshotJob = cron.schedule('0 5 * * *', async () => {
-      console.log('🕐 Daily cron job triggered: Starting snapshot capture...')
+      console.log('[CRON] Daily cron job triggered: Starting snapshot capture...')
 
       try {
         const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
         await captureAllSnapshots()
-        console.log('✅ Daily cron job completed successfully')
+        console.log('[CRON] Daily cron job completed successfully')
       } catch (error) {
-        console.error('❌ Daily cron job failed:', error)
+        console.error('[CRON] Daily cron job failed:', error)
       }
     }, {
       timezone: "America/New_York"
     })
 
-    console.log('✅ node-cron scheduled: 5:00 AM (America/New_York)')
+    console.log('[CRON] node-cron scheduled: 5:00 AM (America/New_York)')
   }
 
-  console.log('================================')
-  console.log('')
+  console.log('[CRON] ================================')
 }
 
 /**
@@ -63,7 +59,7 @@ export function stopCronJobs() {
   if (snapshotJob) {
     snapshotJob.stop()
     snapshotJob = null
-    console.log('🛑 Cron jobs stopped')
+    console.log('[CRON] Cron jobs stopped')
   }
 }
 
@@ -71,7 +67,7 @@ export function stopCronJobs() {
  * Manually trigger the snapshot job (for testing)
  */
 export async function triggerSnapshotNow() {
-  console.log('🔄 Manually triggering snapshot job...')
+  console.log('[CRON] Manually triggering snapshot job...')
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const cronSecret = process.env.CRON_SECRET

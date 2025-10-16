@@ -8,8 +8,12 @@ export async function register() {
   // Only run on the server side
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { initializeCronJobs } = await import('./lib/cron/scheduler')
+    const { initializeStartupTasks } = await import('./lib/services/startupService')
 
     // Initialize and display cron job information
     initializeCronJobs()
+
+    // Run historical snapshot first, then daily snapshot
+    await initializeStartupTasks()
   }
 }

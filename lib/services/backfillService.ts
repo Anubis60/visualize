@@ -13,21 +13,14 @@ import { companyRepository } from '@/lib/db/repositories/CompanyRepository'
  * This should only be run ONCE when a company first registers
  */
 export async function backfillCompanyHistory(companyId: string): Promise<void> {
-  console.log(`Starting 365-day historical backfill for company ${companyId}`)
-
   try {
     // 1. Fetch ALL memberships using whopClient
-    console.log('  Fetching memberships...')
     const allMemberships = await whopClient.getAllMemberships(companyId)
-    console.log(`  Total memberships fetched: ${allMemberships.length}`)
 
     // 2. Fetch ALL plans using whopClient
-    console.log('  Fetching plans...')
     const allPlans = await whopClient.getAllPlans(companyId)
-    console.log(`  Total plans fetched: ${allPlans.length}`)
 
     // 3. Register company in database
-    console.log('  Registering company...')
     const sampleData = allMemberships[0] || {}
     const companyData = (sampleData as { company?: { title?: string; route?: string } }).company
     await companyRepository.registerCompany({
@@ -40,12 +33,9 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
       businessType: undefined,
       rawData: companyData || {},
     })
-    console.log('  Company registered in database')
 
     // 4. Fetch ALL payments using whopClient
-    console.log('  Fetching payments...')
     const payments = await whopClient.getAllPayments(companyId)
-    console.log(`  Total payments fetched: ${payments.length}`)
 
     // 5. Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
@@ -59,7 +49,6 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
     }))
 
     // 6. Generate snapshots for the past 365 days
-    console.log('  Generating 365 daily snapshots...')
     const now = new Date()
     const snapshotsGenerated = []
 
@@ -262,24 +251,13 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
       }, snapshotDate)
 
       snapshotsGenerated.push(snapshotDate.toISOString().split('T')[0])
-
-      // Log progress every 30 days
-      if (daysAgo % 30 === 0) {
-        console.log(`    Progress: ${365 - daysAgo}/365 snapshots generated`)
-      }
     }
 
     // Mark backfill as completed
     await companyRepository.markBackfillCompleted(companyId)
 
-    console.log(`Backfill completed successfully for ${companyId}`)
-    console.log(`  - Total snapshots generated: ${snapshotsGenerated.length}`)
-    console.log(`  - Date range: ${snapshotsGenerated[0]} to ${snapshotsGenerated[snapshotsGenerated.length - 1]}`)
-    console.log(`  - Memberships: ${allMemberships.length}`)
-    console.log(`  - Payments: ${payments.length}`)
-
   } catch (error) {
-    console.error(`Failed to backfill history for ${companyId}:`, error)
+    console.error(`[BACKFILL] Failed to backfill history for ${companyId}:`, error)
     throw error
   }
 }
@@ -288,26 +266,19 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
  * Run backfill for all companies that need it
  */
 export async function backfillAllCompaniesNeedingHistory(): Promise<void> {
-  console.log('Starting backfill for companies that need historical data...')
-
   try {
     const companies = await companyRepository.getCompaniesNeedingBackfill()
 
     if (companies.length === 0) {
-      console.log('No companies need backfill')
       return
     }
 
-    console.log(`Found ${companies.length} compan${companies.length === 1 ? 'y' : 'ies'} needing backfill`)
-
     for (const company of companies) {
-      console.log(`\nProcessing company: ${company.companyId}`)
       await backfillCompanyHistory(company.companyId)
     }
 
-    console.log('\nAll companies backfilled successfully')
   } catch (error) {
-    console.error('Failed to backfill companies:', error)
+    console.error('[BACKFILL] Failed to backfill companies:', error)
     throw error
   }
 }

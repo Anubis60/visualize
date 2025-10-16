@@ -35,14 +35,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     other: 0,
   }
 
-  // Debug: Check membership statuses
-  const statusCounts: Record<string, number> = {}
-  memberships.forEach(m => {
-    statusCounts[m.status] = (statusCounts[m.status] || 0) + 1
-  })
-  console.log('\n=== Membership Status Distribution ===')
-  console.log(JSON.stringify(statusCounts, null, 2))
-
   const now = Date.now() / 1000 // Convert to seconds for Whop timestamps
 
   const activeMemberships = memberships.filter(m => {
@@ -52,19 +44,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
                      (!m.expiresAt || m.expiresAt > now)
     return isActive && m.planData
   })
-
-  console.log('\n=== MRR Calculation ===')
-  console.log(`Total active memberships with plan data: ${activeMemberships.length}`)
-
-  // Debug: Sample a few memberships to see their structure
-  if (activeMemberships.length === 0 && memberships.length > 0) {
-    console.log('\n⚠️ No active memberships found. Sample membership:')
-    const sample = memberships[0]
-    console.log(`  Status: ${sample.status}`)
-    console.log(`  Canceled at: ${sample.canceledAt}`)
-    console.log(`  Expires at: ${sample.expiresAt}`)
-    console.log(`  Has plan data: ${!!sample.planData}`)
-  }
 
   activeMemberships.forEach(membership => {
     const planData = membership.planData
@@ -82,9 +61,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     // Normalize to monthly (30 days)
     const monthlyRevenue = (price / billingPeriod) * 30
 
-    const planTitle = planData.accessPass?.title || 'UNNAMED'
-    console.log(`${planTitle}: $${price}/${billingPeriod}d = $${monthlyRevenue.toFixed(2)}/mo`)
-
     // Categorize by billing period
     if (billingPeriod === 30) {
       breakdown.monthly += monthlyRevenue
@@ -98,14 +74,6 @@ export function calculateMRR(memberships: Membership[]): MRRData {
   })
 
   const total = breakdown.monthly + breakdown.annual + breakdown.quarterly + breakdown.other
-
-  console.log('\nMRR Breakdown:')
-  console.log(`  Monthly: $${breakdown.monthly.toFixed(2)}`)
-  console.log(`  Annual: $${breakdown.annual.toFixed(2)}`)
-  console.log(`  Quarterly: $${breakdown.quarterly.toFixed(2)}`)
-  console.log(`  Other: $${breakdown.other.toFixed(2)}`)
-  console.log(`  TOTAL MRR: $${total.toFixed(2)}`)
-  console.log('======================\n')
 
   return {
     total,

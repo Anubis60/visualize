@@ -20,14 +20,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`Checking backfill status for company: ${companyId}`)
-
     // Check if company exists
     const company = await companyRepository.findByWhopCompanyId(companyId)
 
     // If company exists and backfill is completed, we're done
     if (company?.backfillCompleted) {
-      console.log(`Company ${companyId} already has backfill completed`)
       return NextResponse.json({
         needsBackfill: false,
         backfillCompleted: true,
@@ -41,7 +38,6 @@ export async function GET(request: NextRequest) {
 
     if (recentSnapshots.length >= 30 && company) {
       // If we have at least 30 days of data, mark as completed
-      console.log(`Company ${companyId} has ${recentSnapshots.length} snapshots, marking as complete`)
       await companyRepository.markBackfillCompleted(companyId)
       return NextResponse.json({
         needsBackfill: false,
@@ -51,22 +47,13 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Company doesn't exist OR backfill not completed - trigger backfill
-    if (!company) {
-      console.log(`Company ${companyId} not found in database - will register during backfill`)
-    } else {
-      console.log(`Company ${companyId} exists but backfill not completed`)
-    }
-
-    console.log(`Starting 365-day historical backfill for ${companyId}...`)
-
     // Run backfill in background (don't await to avoid timeout)
     backfillCompanyHistory(companyId)
       .then(() => {
-        console.log(`Backfill completed successfully for ${companyId}`)
+        // Backfill completed
       })
       .catch((error) => {
-        console.error(`Backfill failed for ${companyId}:`, error)
+        console.error(`[BACKFILL] Failed for ${companyId}:`, error)
       })
 
     return NextResponse.json({
