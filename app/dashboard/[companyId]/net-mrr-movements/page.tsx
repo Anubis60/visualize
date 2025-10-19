@@ -23,12 +23,13 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
     to: new Date(),
   })
 
-  useEffect(() => {
+    useEffect(() => {
     params.then((p) => {
       fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
-        .then(data => {
-          setAnalytics(data as AnalyticsData)
+        .then((currentData) => {
+          setAnalytics(currentData as AnalyticsData)
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

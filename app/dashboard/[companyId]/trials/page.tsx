@@ -23,23 +23,16 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+    useEffect(() => {
     params.then((p) => {
       fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
-          const data = currentData as AnalyticsData
-          setAnalytics(data)
-          // Create simple chart data from current metrics
-          const now = new Date()
-          setChartData([{
-            date: now.toISOString(),
-            value: data.trials?.total || 0
-          }])
+          setAnalytics(currentData as AnalyticsData)
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {
-          // Error fetching data
           setLoading(false)
         })
     })

@@ -20,16 +20,16 @@ export default function UpgradesPage({ params }: { params: Promise<{ companyId: 
   const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+    useEffect(() => {
     params.then((p) => {
-      Promise.all([
-        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-      ])
+      fetch(`/api/analytics?company_id=${p.companyId}`)
+        .then(res => res.json())
+        .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {
-          // Error fetching data
           setLoading(false)
         })
     })

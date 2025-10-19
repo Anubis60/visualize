@@ -25,13 +25,13 @@ export default function SubscribersPage({ params }: { params: Promise<{ companyI
   const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+    useEffect(() => {
     params.then((p) => {
-      // Fetch current analytics and historical data
-      Promise.all([
-        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-      ])
+      fetch(`/api/analytics?company_id=${p.companyId}`)
+        .then(res => res.json())
+        .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

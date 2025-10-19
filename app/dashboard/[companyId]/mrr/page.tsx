@@ -24,13 +24,13 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
   const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+    useEffect(() => {
     params.then((p) => {
-      // Fetch current analytics and up to 1 year of historical data
-      Promise.all([
-        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-      ])
+      fetch(`/api/analytics?company_id=${p.companyId}`)
+        .then(res => res.json())
+        .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {
