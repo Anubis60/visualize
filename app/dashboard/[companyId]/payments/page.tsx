@@ -29,7 +29,6 @@ export default function PaymentsPage({ params }: { params: Promise<{ companyId: 
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

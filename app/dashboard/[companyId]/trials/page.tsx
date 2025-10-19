@@ -29,7 +29,6 @@ export default function TrialsPage({ params }: { params: Promise<{ companyId: st
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

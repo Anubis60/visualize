@@ -28,7 +28,6 @@ export default function RefundsPage({ params }: { params: Promise<{ companyId: s
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

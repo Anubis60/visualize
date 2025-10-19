@@ -28,7 +28,6 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {
