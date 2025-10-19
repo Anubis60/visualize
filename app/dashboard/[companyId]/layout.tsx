@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { DashboardHeader } from '@/components/DashboardHeader'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
 import SubscriptionModal from '@/components/SubscriptionModal'
+import { AnalyticsProvider } from '@/lib/contexts/AnalyticsContext'
 import { use, useEffect, useState } from 'react'
 
 export default function DashboardLayout({
@@ -59,22 +60,24 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Subscription Modal - shows when user doesn't have access */}
-      {showSubscriptionModal && userId && (
-        <SubscriptionModal userId={userId} companyId={companyId} />
-      )}
+    <AnalyticsProvider companyId={companyId}>
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Subscription Modal - shows when user doesn't have access */}
+        {showSubscriptionModal && userId && (
+          <SubscriptionModal userId={userId} companyId={companyId} />
+        )}
 
-      {/* Main Dashboard - blurred if no subscription */}
-      <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
-        <Sidebar companyId={companyId} />
-        <div className="flex-1 flex flex-col">
-          <DashboardHeader companyId={companyId} />
-          <main className={`flex-1 transition-all duration-300 pt-20 ${collapsed ? 'ml-16' : 'ml-48'}`}>
-            {children}
-          </main>
+        {/* Main Dashboard - blurred if no subscription */}
+        <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
+          <Sidebar companyId={companyId} />
+          <div className="flex-1 flex flex-col">
+            <DashboardHeader companyId={companyId} />
+            <main className={`flex-1 transition-all duration-300 pt-20 ${collapsed ? 'ml-16' : 'ml-48'}`}>
+              {children}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </AnalyticsProvider>
   )
 }

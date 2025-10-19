@@ -1,9 +1,10 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useState } from 'react'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { DollarSign, Users, TrendingUp, Activity } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 
 interface AnalyticsData {
   mrr: {
@@ -32,83 +33,9 @@ interface AnalyticsData {
 
 export default function DashboardPage({ params }: { params: Promise<{ companyId: string }> }) {
   const { companyId } = use(params)
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [historicalLoading, setHistoricalLoading] = useState(false)
-  const [dailyLoading, setDailyLoading] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchAnalytics() {
-      try {
-        // Fetch analytics (uses cached data if available within 10min)
-        const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
-        if (!analyticsResponse.ok) {
-          throw new Error('Failed to fetch analytics')
-        }
-        const data = await analyticsResponse.json()
-        setAnalytics(data as AnalyticsData)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAnalytics()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const handleHistoricalBackfill = async () => {
-    setHistoricalLoading(true)
-    setMessage(null)
-    try {
-      const response = await fetch('/api/manual/historical', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_id: companyId })
-      })
-      const data = await response.json() as { success?: boolean; stats?: { snapshotsGenerated: number; dateRange: { start: string; end: string } }; error?: string }
-      if (data.success) {
-        setMessage(`Historical backfill completed! Generated ${data.stats?.snapshotsGenerated} snapshots from ${data.stats?.dateRange.start} to ${data.stats?.dateRange.end}`)
-      } else {
-        setMessage(`Error: ${data.error}`)
-      }
-    } catch (err) {
-      setMessage(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    } finally {
-      setHistoricalLoading(false)
-    }
-  }
-
-  const handleDailySnapshot = async () => {
-    setDailyLoading(true)
-    setMessage(null)
-    try {
-      const response = await fetch('/api/manual/daily', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_id: companyId })
-      })
-      const data = await response.json() as { success?: boolean; snapshot?: { mrr: number; activeSubscribers: number }; error?: string }
-      if (data.success) {
-        setMessage(`Daily snapshot completed! MRR: $${data.snapshot?.mrr.toFixed(2)}, Active Subscribers: ${data.snapshot?.activeSubscribers}`)
-        // Refresh analytics
-        const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
-        if (analyticsResponse.ok) {
-          const analyticsData = await analyticsResponse.json()
-          setAnalytics(analyticsData as AnalyticsData)
-        }
-      } else {
-        setMessage(`Error: ${data.error}`)
-      }
-    } catch (err) {
-      setMessage(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    } finally {
-      setDailyLoading(false)
-    }
-  }
+  // Use shared analytics context - fetched ONCE in layout
+  const { data: analytics, loading, error, refetch } = useAnalytics()
 
   if (loading) {
     return (
@@ -144,28 +71,13 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
             <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
             <p className="text-gray-600 mt-1">Your Whop analytics at a glance</p>
           </div>
-          <div className="flex gap-4">
-            <button
-              onClick={handleHistoricalBackfill}
-              disabled={historicalLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {historicalLoading ? 'Running...' : 'Run Historical Backfill'}
-            </button>
-            <button
-              onClick={handleDailySnapshot}
-              disabled={dailyLoading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {dailyLoading ? 'Running...' : 'Run Daily Snapshot'}
-            </button>
-          </div>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Refresh Data
+          </button>
         </div>
-        {message && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900">{message}</p>
-          </div>
-        )}
       </div>
 
       {/* Metrics Grid */}
