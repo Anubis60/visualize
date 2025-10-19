@@ -112,30 +112,31 @@ export async function GET(request: NextRequest) {
 
     console.log(JSON.stringify(response, null, 2))
 
+    // TODO: Bring back daily snapshot creation later
     // Store snapshot in MongoDB for historical tracking
-    try {
-      await metricsRepository.upsertDailySnapshot(companyId, {
-        mrr: {
-          total: mrrData.total,
-          breakdown: mrrData.breakdown,
-        },
-        arr,
-        arpu,
-        subscribers: subscriberMetrics,
-        activeUniqueSubscribers,
-        metadata: {
-          totalMemberships: memberships.length,
-          activeMemberships: enrichedMemberships.filter(m => {
-            const now = Date.now() / 1000
-            return (m.status === 'active' || m.status === 'completed') &&
-                   m.canceledAt === null &&
-                   (!m.expiresAt || m.expiresAt > now)
-          }).length,
-          plansCount: allPlans.length,
-        }
-      })
-    } catch (snapshotError) {
-    }
+    // try {
+    //   await metricsRepository.upsertDailySnapshot(companyId, {
+    //     mrr: {
+    //       total: mrrData.total,
+    //       breakdown: mrrData.breakdown,
+    //     },
+    //     arr,
+    //     arpu,
+    //     subscribers: subscriberMetrics,
+    //     activeUniqueSubscribers,
+    //     metadata: {
+    //       totalMemberships: memberships.length,
+    //       activeMemberships: enrichedMemberships.filter(m => {
+    //         const now = Date.now() / 1000
+    //         return (m.status === 'active' || m.status === 'completed') &&
+    //                m.canceledAt === null &&
+    //                (!m.expiresAt || m.expiresAt > now)
+    //       }).length,
+    //       plansCount: allPlans.length,
+    //     }
+    //   })
+    // } catch (snapshotError) {
+    // }
 
     return NextResponse.json(response)
   } catch (error) {

@@ -6,16 +6,10 @@ import type { Payment } from '../analytics/transactions';
  * Maps SDK MembershipListResponse to our Membership interface format
  */
 export async function getAllMemberships(companyId: string) {
-  console.log(`[Whop SDK] Fetching memberships for company: ${companyId}`);
   const memberships = [];
-  let count = 0;
   for await (const membership of whopClient.memberships.list({
     company_id: companyId
   })) {
-    count++;
-    if (count % 100 === 0) {
-      console.log(`[Whop SDK] Fetched ${count} memberships...`);
-    }
     // Map SDK snake_case response to our camelCase Membership interface
     memberships.push({
       id: membership.id,
@@ -38,7 +32,6 @@ export async function getAllMemberships(companyId: string) {
       promoCode: membership.promo_code,
     });
   }
-  console.log(`[Whop SDK] ✓ Fetched total ${count} memberships`);
   return memberships;
 }
 

@@ -42,10 +42,7 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        // First, ensure historical data exists (trigger backfill if needed)
-        await fetch(`/api/analytics/ensure-backfill?company_id=${companyId}`)
-
-        // Fetch analytics
+        // Fetch analytics (uses cached data if available within 10min)
         const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
         if (!analyticsResponse.ok) {
           throw new Error('Failed to fetch analytics')
