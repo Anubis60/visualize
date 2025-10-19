@@ -123,6 +123,27 @@ export async function getAllPlans(companyId: string) {
 export async function getCompany(companyId: string) {
   console.log(`[Whop SDK] Fetching company details: ${companyId}`);
   const company = await whopClient.companies.retrieve(companyId);
+
+  // Log the full raw response for planning/debugging
+  console.log('[Whop SDK] Raw Company Response:', JSON.stringify({
+    id: company.id,
+    title: company.title,
+    route: company.route,
+    verified: company.verified,
+    business_type: company.business_type,
+    industry_type: company.industry_type,
+    member_count: company.member_count,
+    published_reviews_count: company.published_reviews_count,
+    created_at: company.created_at,
+    updated_at: company.updated_at,
+    owner_user: company.owner_user,
+    social_links: company.social_links,
+    // Note: The SDK Company type does NOT include:
+    // - logo (not available)
+    // - bannerImage (not available)
+    // - description (not available)
+  }, null, 2));
+
   console.log(`[Whop SDK] ✓ Retrieved company: ${company.title}`);
   return company;
 }

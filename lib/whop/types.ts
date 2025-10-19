@@ -12,7 +12,31 @@ export type {
   PlanType,
   ReleaseMethod,
   Visibility,
+  Company,
+  BusinessTypes,
+  IndustryTypes,
 } from '@whop/sdk/resources/shared';
+
+/**
+ * The SDK Company type includes:
+ * - id: string
+ * - title: string
+ * - route: string
+ * - verified: boolean
+ * - business_type: BusinessTypes | null
+ * - industry_type: IndustryTypes | null
+ * - member_count: number
+ * - published_reviews_count: number
+ * - created_at: string
+ * - updated_at: string
+ * - owner_user: { id, username, name }
+ * - social_links: Array<{ platform, url }>
+ *
+ * NOT AVAILABLE in SDK:
+ * - logo (use placeholder or fetch separately)
+ * - bannerImage (not provided)
+ * - description (not provided)
+ */
 
 // Payment type alias for our analytics
 export interface Payment {
