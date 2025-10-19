@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { DataTable } from '@/components/charts/DataTable'
 

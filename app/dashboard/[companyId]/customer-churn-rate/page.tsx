@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 import { ChartControls } from '@/components/charts/ChartControls'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { DataTable } from '@/components/charts/DataTable'
@@ -16,24 +17,9 @@ interface AnalyticsData {
 }
 
 export default function CustomerChurnRatePage({ params }: { params: Promise<{ companyId: string }> }) {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([])
-  const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-    params.then((p) => {
-      fetch(`/api/analytics?company_id=${p.companyId}`)
-        .then(res => res.json())
-        .then((currentData) => {
-          setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
-          setLoading(false)
-        })
-        .catch(() => {
-          setLoading(false)
-        })
-    })
-  }, [params])
+  // Use shared analytics context - data fetched ONCE in layout
+  const { data: analytics, loading } = useAnalytics()
+  const [historicalData] = useState<HistoricalDataPoint[]>([])
 
   const {
     chartType,

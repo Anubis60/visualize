@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ChartControls, ChartType, TimePeriod } from '@/components/charts/ChartControls'
 
