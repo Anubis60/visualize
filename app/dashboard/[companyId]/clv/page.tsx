@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 import { MetricsChart } from '@/components/charts/MetricsChart'
 import { DataTable } from '@/components/charts/DataTable'
 
@@ -25,7 +24,7 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
 
     useEffect(() => {
     params.then((p) => {
-      fetch(`/api/analytics?company_id=${p.companyId}`)
+      fetch(`/api/analytics/cached?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)

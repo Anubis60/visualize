@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ChartControls, ChartType, TimePeriod } from '@/components/charts/ChartControls'
 
@@ -26,7 +25,7 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
 
     useEffect(() => {
     params.then((p) => {
-      fetch(`/api/analytics?company_id=${p.companyId}`)
+      fetch(`/api/analytics/cached?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)

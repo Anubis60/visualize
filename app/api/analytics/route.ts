@@ -6,6 +6,7 @@ import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
 import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics } from '@/lib/analytics/transactions'
 import { Membership, Plan } from '@/lib/types/analytics'
+import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
         return acc
       }, [] as Array<{ id: string; name: string }>)
 
-    return NextResponse.json({
+    const responseData = {
       mrr: {
         total: mrrData.total,
         breakdown: mrrData.breakdown,
@@ -100,7 +101,42 @@ export async function GET(request: NextRequest) {
       },
       plans: uniquePlans,
       timestamp: new Date().toISOString(),
-    })
+    }
+
+    // Store in MongoDB for chart pages to reference
+    try {
+      await metricsRepository.upsertDailySnapshot(companyId, {
+        mrr: {
+          total: mrrData.total,
+          breakdown: mrrData.breakdown,
+        },
+        arr,
+        arpu,
+        subscribers: subscriberMetrics,
+        activeUniqueSubscribers,
+        metadata: {
+          totalMemberships: allMemberships.length,
+          activeMemberships: enrichedMemberships.filter(m => {
+            const now = Date.now() / 1000
+            return (m.status === 'active' || m.status === 'completed') &&
+                   m.canceledAt === null &&
+                   (!m.expiresAt || m.expiresAt > now)
+          }).length,
+          plansCount: allPlans.length,
+        },
+        rawData: {
+          memberships: allMemberships,
+          plans: allPlans,
+          transactions: payments,
+        }
+      })
+      console.log('[MongoDB] Stored analytics data for all chart pages to reference')
+    } catch (dbError) {
+      console.error('[MongoDB] Failed to store analytics:', dbError)
+      // Don't fail the request if MongoDB save fails
+    }
+
+    return NextResponse.json(responseData)
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to calculate analytics', details: error instanceof Error ? error.message : 'Unknown error' },
