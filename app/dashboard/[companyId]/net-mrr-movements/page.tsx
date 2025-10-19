@@ -29,7 +29,6 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {
