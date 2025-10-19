@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopSdk } from '@/lib/whop/sdk'
+import { getAllMemberships, getAllPayments, getAllPlans } from '@/lib/whop/helpers'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
-import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics, Payment } from '@/lib/analytics/transactions'
+import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics } from '@/lib/analytics/transactions'
 import { Membership, Plan } from '@/lib/types/analytics'
 
 export async function GET(request: NextRequest) {
@@ -19,60 +19,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch memberships
-    let allMemberships: Membership[] = []
-    let hasNextPage = true
-    let cursor: string | undefined = undefined
-
-    while (hasNextPage) {
-      const response = await whopSdk.withCompany(companyId).companies.listMemberships({
-        companyId,
-        first: 50,
-        after: cursor,
-      })
-
-      const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
-      allMemberships = [...allMemberships, ...nodes]
-
-      hasNextPage = response?.memberships?.pageInfo?.hasNextPage || false
-      cursor = response?.memberships?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPage) break
-    }
-
-    // Fetch plans
-    let allPlans: Plan[] = []
-    let hasNextPlanPage = true
-    let planCursor: string | undefined = undefined
-
-    while (hasNextPlanPage) {
-      const plansResponse = await whopSdk.withCompany(companyId).companies.listPlans({
-        companyId,
-        first: 50,
-        after: planCursor,
-      })
-
-      const planNodes = (plansResponse?.plans?.nodes || []) as Plan[]
-      allPlans = [...allPlans, ...planNodes]
-
-      hasNextPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
-      planCursor = plansResponse?.plans?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPlanPage) break
-    }
-
-    // Fetch payments
-    const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
-    paymentsUrl.searchParams.set("company_id", companyId)
-
-    const paymentsResponse = await fetch(paymentsUrl, {
-      headers: {
-        Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
-      },
-    })
-
-    const paymentsData = await paymentsResponse.json()
-    const payments = (paymentsData.data || []) as Payment[]
+    // Fetch all data using SDK helpers
+    const allMemberships = await getAllMemberships(companyId)
+    const allPlans = await getAllPlans(companyId)
+    const payments = await getAllPayments(companyId)
 
     // Enrich memberships with plan data
     const planMap = new Map<string, Plan>()

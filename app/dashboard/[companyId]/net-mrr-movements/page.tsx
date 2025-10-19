@@ -28,7 +28,7 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
       fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
         .then(data => {
-          setAnalytics(data)
+          setAnalytics(data as AnalyticsData)
           setLoading(false)
         })
         .catch(() => {

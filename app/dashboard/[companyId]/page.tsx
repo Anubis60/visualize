@@ -51,7 +51,7 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
           throw new Error('Failed to fetch analytics')
         }
         const data = await analyticsResponse.json()
-        setAnalytics(data)
+        setAnalytics(data as AnalyticsData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
@@ -72,9 +72,9 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_id: companyId })
       })
-      const data = await response.json()
+      const data = await response.json() as { success?: boolean; stats?: { snapshotsGenerated: number; dateRange: { start: string; end: string } }; error?: string }
       if (data.success) {
-        setMessage(`Historical backfill completed! Generated ${data.stats.snapshotsGenerated} snapshots from ${data.stats.dateRange.start} to ${data.stats.dateRange.end}`)
+        setMessage(`Historical backfill completed! Generated ${data.stats?.snapshotsGenerated} snapshots from ${data.stats?.dateRange.start} to ${data.stats?.dateRange.end}`)
       } else {
         setMessage(`Error: ${data.error}`)
       }
@@ -94,14 +94,14 @@ export default function DashboardPage({ params }: { params: Promise<{ companyId:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_id: companyId })
       })
-      const data = await response.json()
+      const data = await response.json() as { success?: boolean; snapshot?: { mrr: number; activeSubscribers: number }; error?: string }
       if (data.success) {
-        setMessage(`Daily snapshot completed! MRR: $${data.snapshot.mrr.toFixed(2)}, Active Subscribers: ${data.snapshot.activeSubscribers}`)
+        setMessage(`Daily snapshot completed! MRR: $${data.snapshot?.mrr.toFixed(2)}, Active Subscribers: ${data.snapshot?.activeSubscribers}`)
         // Refresh analytics
         const analyticsResponse = await fetch(`/api/analytics?company_id=${companyId}`)
         if (analyticsResponse.ok) {
           const analyticsData = await analyticsResponse.json()
-          setAnalytics(analyticsData)
+          setAnalytics(analyticsData as AnalyticsData)
         }
       } else {
         setMessage(`Error: ${data.error}`)

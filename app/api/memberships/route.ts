@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopClient } from '@/lib/whop/client'
+import { getAllMemberships } from '@/lib/whop/helpers'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch from API if no cache or force refresh
-    const memberships = await whopClient.getAllMemberships(companyId)
+    const memberships = await getAllMemberships(companyId)
 
     return NextResponse.json({
       data: memberships,

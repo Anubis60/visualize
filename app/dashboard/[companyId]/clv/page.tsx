@@ -27,12 +27,13 @@ export default function CLVPage({ params }: { params: Promise<{ companyId: strin
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
-          setAnalytics(currentData)
+          const data = currentData as AnalyticsData
+          setAnalytics(data)
           // Create simple chart data from current metrics
           const now = new Date()
           setChartData([{
             date: now.toISOString(),
-            value: currentData.clv?.average || 0
+            value: data.clv?.average || 0
           }])
           setLoading(false)
         })

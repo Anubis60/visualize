@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopSdk } from '@/lib/whop/sdk'
+import { whopClient } from '@/lib/whop/sdk'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Company Data
     try {
-      const company = await whopSdk.withCompany(companyId).companies.getCompany({
-        companyId,
-      })
+      const company = await whopClient.companies.retrieve(companyId)
       results.company = company
     } catch (error) {
       results.company = { error: error instanceof Error ? error.message : 'Unknown error' }
@@ -27,8 +25,8 @@ export async function GET(request: NextRequest) {
 
     // Memberships (first page)
     try {
-      const memberships = await whopSdk.withCompany(companyId).companies.listMemberships({
-        companyId,
+      const memberships = await whopClient.memberships.list({
+        company_id: companyId,
         first: 5,
       })
       results.memberships = memberships
@@ -38,8 +36,8 @@ export async function GET(request: NextRequest) {
 
     // Plans (first page)
     try {
-      const plans = await whopSdk.withCompany(companyId).companies.listPlans({
-        companyId,
+      const plans = await whopClient.plans.list({
+        company_id: companyId,
         first: 5,
       })
       results.plans = plans
@@ -49,24 +47,17 @@ export async function GET(request: NextRequest) {
 
     // Payments/Transactions
     try {
-      const paymentsUrl = new URL("https://api.whop.com/api/v1/payments")
-      paymentsUrl.searchParams.set("company_id", companyId)
-      paymentsUrl.searchParams.set("per", "5")
-
-      const paymentsResponse = await fetch(paymentsUrl, {
-        headers: {
-          Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
-        },
+      const payments = await whopClient.payments.list({
+        company_id: companyId,
+        first: 5,
       })
-
-      const paymentsData = await paymentsResponse.json()
-      results.payments = paymentsData
+      results.payments = payments
     } catch (error) {
       results.payments = { error: error instanceof Error ? error.message : 'Unknown error' }
     }
 
     // Available SDK methods
-    const sdkMethods = Object.keys(whopSdk.withCompany(companyId).companies)
+    const sdkMethods = Object.keys(whopClient)
     results.availableSdkMethods = sdkMethods
 
     // Return full raw data in response for Vercel logs and browser viewing

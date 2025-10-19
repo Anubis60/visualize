@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopClient } from '@/lib/whop/client'
+import { getAllMemberships, getAllPayments, getAllPlans } from '@/lib/whop/helpers'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
@@ -16,7 +16,7 @@ import { DailySnapshot } from '@/lib/db/models/CompanyMetrics'
 export async function POST(request: NextRequest) {
 
   try {
-    const body = await request.json()
+    const body = await request.json() as { company_id?: string }
     const companyId = body.company_id
 
     if (!companyId) {
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
     const today = new Date().toISOString().split('T')[0]
 
     // Step 1: Fetch current data from Whop API
-    const allMemberships = await whopClient.getAllMemberships(companyId)
+    const allMemberships = await getAllMemberships(companyId)
 
-    const allPlans = await whopClient.getAllPlans(companyId)
+    const allPlans = await getAllPlans(companyId)
 
-    const payments = await whopClient.getAllPayments(companyId)
+    const payments = await getAllPayments(companyId)
 
     // Step 2: Update raw data in MongoDB
     const sampleData = allMemberships[0] || {}

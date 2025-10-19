@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAllPayments } from '@/lib/whop/helpers'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
 export async function GET(request: NextRequest) {
@@ -27,19 +28,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch from API if no cache or force refresh
-    const url = new URL("https://api.whop.com/api/v1/payments")
-    url.searchParams.set("company_id", companyId)
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
-      },
-    })
-
-    const data = await response.json()
+    const payments = await getAllPayments(companyId)
 
     return NextResponse.json({
-      ...data,
+      data: payments,
       cached: false,
     })
   } catch (error) {

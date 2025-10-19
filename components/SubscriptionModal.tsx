@@ -28,7 +28,7 @@ export default function SubscriptionModal({ userId, companyId }: SubscriptionMod
         })
       })
 
-      const data = await response.json()
+      const data = await response.json() as { error?: string; checkoutUrl?: string }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session')

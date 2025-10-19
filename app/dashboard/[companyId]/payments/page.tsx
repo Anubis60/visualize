@@ -28,12 +28,13 @@ export default function PaymentsPage({ params }: { params: Promise<{ companyId: 
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
-          setAnalytics(currentData)
+          const data = currentData as AnalyticsData
+          setAnalytics(data)
           // Create simple chart data from current metrics
           const now = new Date()
           setChartData([{
             date: now.toISOString(),
-            value: currentData.payments?.successful || 0
+            value: data.payments?.successful || 0
           }])
           setLoading(false)
         })

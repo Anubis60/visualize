@@ -27,8 +27,8 @@ export default function ARRPage({ params }: { params: Promise<{ companyId: strin
         fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
         .then(([currentData, historicalResponse]) => {
-          setAnalytics(currentData)
-          setHistoricalData(historicalResponse.data || [])
+          setAnalytics(currentData as AnalyticsData)
+          setHistoricalData((historicalResponse as { data?: HistoricalDataPoint[] }).data || [])
           setLoading(false)
         })
         .catch(() => {

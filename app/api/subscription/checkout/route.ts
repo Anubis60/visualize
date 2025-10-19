@@ -4,7 +4,7 @@ import { Collections } from '@/lib/models';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json() as { userId?: string; email?: string; companyId?: string };
     const { userId, email, companyId } = body;
 
     if (!userId) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       throw new Error(`Whop API error (${response.status}): ${errorText}`);
     }
 
-    const checkoutData = await response.json();
+    const checkoutData = await response.json() as { id: string; purchase_url?: string; plan?: { id: string } };
 
     // Update user and create subscription in database (if MongoDB is configured)
     if (clientPromise) {

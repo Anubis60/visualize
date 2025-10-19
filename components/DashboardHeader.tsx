@@ -23,7 +23,7 @@ export function DashboardHeader({ companyId }: DashboardHeaderProps) {
         if (!response.ok) {
           throw new Error('Failed to fetch company data')
         }
-        const result = await response.json()
+        const result = await response.json() as CompanyData
         console.log('🔍 Company data received:', result)
         console.log('🔍 Logo value:', result.logo)
         setCompany(result)

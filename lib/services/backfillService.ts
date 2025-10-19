@@ -1,4 +1,4 @@
-import { whopClient } from '@/lib/whop/client'
+import { getAllMemberships, getAllPayments, getAllPlans } from '@/lib/whop/helpers'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
@@ -14,11 +14,11 @@ import { companyRepository } from '@/lib/db/repositories/CompanyRepository'
  */
 export async function backfillCompanyHistory(companyId: string): Promise<void> {
   try {
-    // 1. Fetch ALL memberships using whopClient
-    const allMemberships = await whopClient.getAllMemberships(companyId)
+    // 1. Fetch ALL memberships using SDK helpers
+    const allMemberships = await getAllMemberships(companyId)
 
-    // 2. Fetch ALL plans using whopClient
-    const allPlans = await whopClient.getAllPlans(companyId)
+    // 2. Fetch ALL plans using SDK helpers
+    const allPlans = await getAllPlans(companyId)
 
     // 3. Register company in database
     const sampleData = allMemberships[0] || {}
@@ -34,8 +34,8 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
       rawData: companyData || {},
     })
 
-    // 4. Fetch ALL payments using whopClient
-    const payments = await whopClient.getAllPayments(companyId)
+    // 4. Fetch ALL payments using SDK helpers
+    const payments = await getAllPayments(companyId)
 
     // 5. Enrich memberships with plan data
     const planMap = new Map<string, Plan>()

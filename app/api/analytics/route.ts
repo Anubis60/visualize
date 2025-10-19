@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { whopSdk } from '@/lib/whop/sdk'
+import { getAllMemberships, getAllPlans } from '@/lib/whop/helpers'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
@@ -53,49 +53,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch ALL memberships using Whop SDK with pagination
-    let allMemberships: Membership[] = []
-    let hasNextPage = true
-    let cursor: string | undefined = undefined
-
-    while (hasNextPage) {
-      const response = await whopSdk.withCompany(companyId).companies.listMemberships({
-        companyId,
-        first: 50, // Fetch 50 at a time to avoid complexity issues
-        after: cursor,
-      })
-
-      const nodes = (response?.memberships?.nodes || []) as unknown as Membership[]
-      allMemberships = [...allMemberships, ...nodes]
-
-      hasNextPage = response?.memberships?.pageInfo?.hasNextPage || false
-      cursor = response?.memberships?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPage) break
-    }
-
-    const memberships = allMemberships
-
-    // Fetch ALL plans using Whop SDK with pagination
-    let allPlans: Plan[] = []
-    let hasNextPlanPage = true
-    let planCursor: string | undefined = undefined
-
-    while (hasNextPlanPage) {
-      const plansResponse = await whopSdk.withCompany(companyId).companies.listPlans({
-        companyId,
-        first: 50,
-        after: planCursor,
-      })
-
-      const planNodes = (plansResponse?.plans?.nodes || []) as Plan[]
-      allPlans = [...allPlans, ...planNodes]
-
-      hasNextPlanPage = plansResponse?.plans?.pageInfo?.hasNextPage || false
-      planCursor = plansResponse?.plans?.pageInfo?.endCursor ?? undefined
-
-      if (!hasNextPlanPage) break
-    }
+    // Fetch ALL memberships and plans using SDK helpers
+    const memberships = await getAllMemberships(companyId)
+    const allPlans = await getAllPlans(companyId)
 
     // Create a map of planId -> planData for quick lookup
     const planMap = new Map<string, Plan>()

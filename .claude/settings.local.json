@@ -6,7 +6,9 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(node update-pages.js)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npm uninstall @whop/api)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File fix-types.ps1)"
     ],
     "deny": [],
     "ask": []

@@ -28,12 +28,13 @@ export default function CashFlowPage({ params }: { params: Promise<{ companyId: 
       fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
-          setAnalytics(currentData)
+          const data = currentData as AnalyticsData
+          setAnalytics(data)
           // Create simple chart data from current metrics
           const now = new Date()
           setChartData([{
             date: now.toISOString(),
-            value: currentData.cashFlow?.net || 0
+            value: data.cashFlow?.net || 0
           }])
           setLoading(false)
         })
