@@ -23,14 +23,11 @@ export default function ARPUPage({ params }: { params: Promise<{ companyId: stri
 
   useEffect(() => {
     params.then((p) => {
-      // Fetch current analytics and historical data
-      Promise.all([
-        fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
-      ])
-        .then(([currentData, historicalResponse]) => {
+      fetch(`/api/analytics?company_id=${p.companyId}`)
+        .then(res => res.json())
+        .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData((historicalResponse as { data?: HistoricalDataPoint[] }).data || [])
+          setHistoricalData([])
           setLoading(false)
         })
         .catch(() => {

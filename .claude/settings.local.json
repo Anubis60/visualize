@@ -8,7 +8,11 @@
       "Bash(node update-pages.js)",
       "Bash(npm run build)",
       "Bash(npm uninstall @whop/api)",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -File fix-types.ps1)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File fix-types.ps1)",
+      "Bash(for file in app/api/*/route.ts app/api/*/*/route.ts)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(head -n 15 \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

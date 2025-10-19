@@ -30,11 +30,8 @@ export default function SubscribersPage({ params }: { params: Promise<{ companyI
       // Fetch current analytics and historical data
       Promise.all([
         fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
-        .then(([currentData, historicalResponse]) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData((historicalResponse as { data?: HistoricalDataPoint[] }).data || [])
           setLoading(false)
         })
         .catch(() => {

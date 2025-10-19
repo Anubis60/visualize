@@ -24,7 +24,7 @@ export default function RefundsPage({ params }: { params: Promise<{ companyId: s
 
   useEffect(() => {
     params.then((p) => {
-      fetch(`/api/analytics/enriched?company_id=${p.companyId}`)
+      fetch(`/api/analytics?company_id=${p.companyId}`)
         .then(res => res.json())
         .then((currentData) => {
           const data = currentData as AnalyticsData

@@ -29,11 +29,8 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
       // Fetch current analytics and up to 1 year of historical data
       Promise.all([
         fetch(`/api/analytics?company_id=${p.companyId}`).then(res => res.json()),
-        fetch(`/api/analytics/historical?company_id=${p.companyId}&days=365`).then(res => res.json())
       ])
-        .then(([currentData, historicalResponse]) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData((historicalResponse as { data?: HistoricalDataPoint[] }).data || [])
           setLoading(false)
         })
         .catch(() => {
