@@ -6,10 +6,16 @@ import type { Payment } from '../analytics/transactions';
  * Maps SDK MembershipListResponse to our Membership interface format
  */
 export async function getAllMemberships(companyId: string) {
+  console.log(`[Whop SDK] Fetching memberships for company: ${companyId}`);
   const memberships = [];
+  let count = 0;
   for await (const membership of whopClient.memberships.list({
     company_id: companyId
   })) {
+    count++;
+    if (count % 100 === 0) {
+      console.log(`[Whop SDK] Fetched ${count} memberships...`);
+    }
     // Map SDK snake_case response to our camelCase Membership interface
     memberships.push({
       id: membership.id,
@@ -32,6 +38,7 @@ export async function getAllMemberships(companyId: string) {
       promoCode: membership.promo_code,
     });
   }
+  console.log(`[Whop SDK] ✓ Fetched total ${count} memberships`);
   return memberships;
 }
 
@@ -40,10 +47,16 @@ export async function getAllMemberships(companyId: string) {
  * Maps SDK PaymentListResponse to our Payment interface format
  */
 export async function getAllPayments(companyId: string): Promise<Payment[]> {
+  console.log(`[Whop SDK] Fetching payments for company: ${companyId}`);
   const payments: Payment[] = [];
+  let count = 0;
   for await (const payment of whopClient.payments.list({
     company_id: companyId
   })) {
+    count++;
+    if (count % 100 === 0) {
+      console.log(`[Whop SDK] Fetched ${count} payments...`);
+    }
     // Map SDK snake_case response to our camelCase Payment interface
     payments.push({
       id: payment.id,
@@ -65,6 +78,7 @@ export async function getAllPayments(companyId: string): Promise<Payment[]> {
       user: payment.user ? { id: payment.user.id } : { id: '' },
     });
   }
+  console.log(`[Whop SDK] ✓ Fetched total ${count} payments`);
   return payments;
 }
 
@@ -73,10 +87,13 @@ export async function getAllPayments(companyId: string): Promise<Payment[]> {
  * Maps SDK PlanListResponse to our Plan interface format
  */
 export async function getAllPlans(companyId: string) {
+  console.log(`[Whop SDK] Fetching plans for company: ${companyId}`);
   const plans = [];
+  let count = 0;
   for await (const plan of whopClient.plans.list({
     company_id: companyId
   })) {
+    count++;
     // Map SDK response to our Plan interface
     plans.push({
       id: plan.id,
@@ -96,6 +113,7 @@ export async function getAllPlans(companyId: string) {
       releaseMethod: String(plan.release_method),
     });
   }
+  console.log(`[Whop SDK] ✓ Fetched total ${count} plans`);
   return plans;
 }
 
@@ -103,5 +121,8 @@ export async function getAllPlans(companyId: string) {
  * Get company details
  */
 export async function getCompany(companyId: string) {
-  return whopClient.companies.retrieve(companyId);
+  console.log(`[Whop SDK] Fetching company details: ${companyId}`);
+  const company = await whopClient.companies.retrieve(companyId);
+  console.log(`[Whop SDK] ✓ Retrieved company: ${company.title}`);
+  return company;
 }
