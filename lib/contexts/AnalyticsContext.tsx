@@ -73,8 +73,16 @@ export function AnalyticsProvider({
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isFetching, setIsFetching] = useState(false)
 
   const fetchAnalytics = async () => {
+    // Prevent duplicate simultaneous fetches
+    if (isFetching) {
+      console.log('[AnalyticsContext] Fetch already in progress, skipping duplicate request')
+      return
+    }
+
+    setIsFetching(true)
     setLoading(true)
     setError(null)
     try {
@@ -96,6 +104,7 @@ export function AnalyticsProvider({
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
+      setIsFetching(false)
     }
   }
 
