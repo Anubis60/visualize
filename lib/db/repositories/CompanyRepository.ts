@@ -46,65 +46,12 @@ export class CompanyRepository {
     return result.modifiedCount > 0
   }
 
-  async updateLastSync(whopCompanyId: string): Promise<boolean> {
-    const collection = await this.getCollection()
-    const result = await collection.updateOne(
-      { companyId: whopCompanyId },
-      {
-        $set: {
-          lastSyncAt: new Date(),
-          updatedAt: new Date(),
-        }
-      }
-    )
-    return result.modifiedCount > 0
-  }
-
   /**
-   * Get all registered companies (for snapshot capture)
+   * Get all registered companies
    */
   async getAllCompanies(): Promise<Company[]> {
     const collection = await this.getCollection()
     return collection.find({}).toArray()
-  }
-
-  /**
-   * Mark company's initial backfill as completed
-   */
-  async markBackfillCompleted(whopCompanyId: string): Promise<boolean> {
-    const collection = await this.getCollection()
-    const result = await collection.updateOne(
-      { companyId: whopCompanyId },
-      {
-        $set: {
-          backfillCompleted: true,
-          backfillCompletedAt: new Date(),
-          updatedAt: new Date(),
-        }
-      }
-    )
-    return result.modifiedCount > 0
-  }
-
-  /**
-   * Get companies that need initial backfill
-   */
-  async getCompaniesNeedingBackfill(): Promise<Company[]> {
-    const collection = await this.getCollection()
-    return collection.find({
-      $or: [
-        { backfillCompleted: { $exists: false } },
-        { backfillCompleted: false }
-      ]
-    }).toArray()
-  }
-
-  /**
-   * Get companies that have completed backfill
-   */
-  async getCompaniesWithBackfill(): Promise<Company[]> {
-    const collection = await this.getCollection()
-    return collection.find({ backfillCompleted: true }).toArray()
   }
 
   /**

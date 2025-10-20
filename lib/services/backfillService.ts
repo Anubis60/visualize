@@ -253,8 +253,7 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
       snapshotsGenerated.push(snapshotDate.toISOString().split('T')[0])
     }
 
-    // Mark backfill as completed
-    await companyRepository.markBackfillCompleted(companyId)
+    // Backfill completed (legacy - no longer tracked)
 
   } catch (error) {
     throw error
@@ -266,7 +265,8 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
  */
 export async function backfillAllCompaniesNeedingHistory(): Promise<void> {
   try {
-    const companies = await companyRepository.getCompaniesNeedingBackfill()
+    // Legacy function - backfill tracking removed, use getAllCompanies() if needed
+    const companies = await companyRepository.getAllCompanies()
 
     if (companies.length === 0) {
       return

@@ -249,7 +249,7 @@ export async function captureAllSnapshots(): Promise<void> {
 
     for (const company of companies) {
       await captureCompanySnapshot(company.companyId)
-      await companyRepository.updateLastSync(company.companyId)
+      // Legacy: lastSyncAt no longer tracked
     }
 
   } catch (error) {

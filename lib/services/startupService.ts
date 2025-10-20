@@ -9,7 +9,8 @@ import { captureAllSnapshots } from './snapshotService'
 async function runHistoricalSnapshot(): Promise<void> {
 
   try {
-    const companies = await companyRepository.getCompaniesNeedingBackfill()
+    // Legacy: backfill tracking removed, use getAllCompanies() if needed
+    const companies = await companyRepository.getAllCompanies()
 
     if (companies.length === 0) {
     } else {

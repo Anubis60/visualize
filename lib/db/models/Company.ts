@@ -11,14 +11,7 @@ export interface Company {
   industryType?: string
   businessType?: string
   userId?: string | null
-  rawData?: unknown // Full Whop company object
-  settings?: {
-    defaultCurrency: string
-    timezone: string
-  }
+  rawData?: unknown // Full Whop company object from SDK
   createdAt: Date
   updatedAt: Date
-  lastSyncAt?: Date
-  backfillCompleted?: boolean // Track if initial 365-day historical data capture is complete
-  backfillCompletedAt?: Date // When the backfill was completed
 }
