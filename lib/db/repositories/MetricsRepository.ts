@@ -103,6 +103,28 @@ export class MetricsRepository {
   }
 
   /**
+   * Get the previous day's snapshot (for calculating MRR movements)
+   * Returns the snapshot from yesterday (or most recent before today)
+   */
+  async getPreviousSnapshot(companyId: string): Promise<MetricsSnapshot | null> {
+    const collection = await this.getCollection()
+
+    // Get today's date at midnight UTC
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0)
+
+    // Find the most recent snapshot before today
+    return collection
+      .find({
+        companyId,
+        date: { $lt: today }
+      })
+      .sort({ date: -1 })
+      .limit(1)
+      .next()
+  }
+
+  /**
    * Get the most recent snapshot with raw data (for fast loading without API calls)
    * Returns null if no snapshot exists or if the snapshot doesn't have raw data
    */

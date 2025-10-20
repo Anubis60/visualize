@@ -12,7 +12,15 @@ interface AnalyticsData {
     active: number
     cancelled: number
   }
+  customerChurnRate?: {
+    rate: number
+    count: number
+  }
   plans: Array<{ id: string; name: string }>
+  historical?: Array<{
+    date: string
+    customerChurnRate?: number
+  }>
 }
 
 export default function ChurnPage({ params }: { params: Promise<{ companyId: string }> }) {
@@ -26,7 +34,7 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {
@@ -60,8 +68,8 @@ export default function ChurnPage({ params }: { params: Promise<{ companyId: str
 
   const totalChurned = analytics.subscribers.cancelled
   const activeSubscribers = analytics.subscribers.active
-  // Mock churn rate for now (will calculate from historical data later)
-  const avgChurnRate = 5.2
+  // Use real calculated churn rate from API
+  const avgChurnRate = analytics.customerChurnRate?.rate || 0
 
   return (
     <div className="p-8">

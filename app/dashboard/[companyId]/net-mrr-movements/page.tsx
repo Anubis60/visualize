@@ -10,6 +10,16 @@ interface AnalyticsData {
   }
   activeUniqueSubscribers: number
   plans: Array<{ id: string; name: string }>
+  movements?: {
+    monthly: Array<{
+      month: string
+      newBusiness: number
+      expansion: number
+      contraction: number
+      churn: number
+      net: number
+    }>
+  }
 }
 
 export default function NetMRRMovementsPage({ params }: { params: Promise<{ companyId: string }> }) {
@@ -47,15 +57,8 @@ export default function NetMRRMovementsPage({ params }: { params: Promise<{ comp
 
   const plans = analytics.plans || []
 
-  // Mock MRR movements data - in production, track actual subscription changes
-  const movementsData = [
-    { month: 'May', newBusiness: 450, expansion: 120, contraction: -50, churn: -80, net: 440 },
-    { month: 'Jun', newBusiness: 380, expansion: 90, contraction: -30, churn: -60, net: 380 },
-    { month: 'Jul', newBusiness: 520, expansion: 150, contraction: -70, churn: -100, net: 500 },
-    { month: 'Aug', newBusiness: 290, expansion: 80, contraction: -40, churn: -70, net: 260 },
-    { month: 'Sep', newBusiness: 410, expansion: 110, contraction: -60, churn: -90, net: 370 },
-    { month: 'Oct', newBusiness: 330, expansion: 95, contraction: -45, churn: -75, net: 305 },
-  ]
+  // Get real MRR movements data from API
+  const movementsData = analytics.movements?.monthly || []
 
   const totalNewBusiness = movementsData.reduce((sum, d) => sum + d.newBusiness, 0)
   const totalExpansion = movementsData.reduce((sum, d) => sum + d.expansion, 0)

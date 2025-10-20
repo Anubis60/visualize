@@ -4,6 +4,13 @@ import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/an
 import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
 import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics } from '@/lib/analytics/transactions'
+import {
+  calculateExpansionMRR,
+  calculateContractionMRR,
+  calculateChurnedMRR,
+  calculateNewMRR,
+  calculateReactivationMRR
+} from '@/lib/analytics/movements'
 import { Membership, Plan } from '@/lib/types/analytics'
 import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
 
@@ -60,24 +67,61 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     const paymentMetrics = calculatePaymentMetrics(payments)
     const refundMetrics = calculateRefundMetrics(payments)
 
-    // Calculate MRR movements (simplified - you may want more sophisticated logic)
+    // 7. Fetch previous snapshot for MRR movement calculations
+    const previousSnapshot = await metricsRepository.getPreviousSnapshot(companyId)
+
+    // 8. Calculate MRR movements using snapshot comparison
+    const expansionMRR = calculateExpansionMRR(previousSnapshot, allMemberships, allPlans)
+    const contractionMRR = calculateContractionMRR(previousSnapshot, allMemberships, allPlans)
+    const churnedMRR = calculateChurnedMRR(previousSnapshot, allMemberships, allPlans)
+    const newMRR = calculateNewMRR(allMemberships, allPlans)
+    const reactivationMRR = calculateReactivationMRR(previousSnapshot, allMemberships, allPlans)
+
+    // 9. Calculate advanced metrics
+    const previousMRR = previousSnapshot?.mrr.total || 0
+
+    // Revenue Churn Rate = (Churned MRR + Contraction MRR) / Previous MRR
+    const revenueChurnRate = previousMRR > 0
+      ? ((churnedMRR.total + contractionMRR.total) / previousMRR) * 100
+      : 0
+
+    // Quick Ratio = (New MRR + Expansion MRR) / (Churned MRR + Contraction MRR)
+    const quickRatioDenominator = churnedMRR.total + contractionMRR.total
+    const quickRatioValue = quickRatioDenominator > 0
+      ? (newMRR.total + expansionMRR.total) / quickRatioDenominator
+      : 0
+
+    // 10. MRR Balance Equation Validation
+    // End MRR = Start MRR + New + Expansion + Reactivation - Contraction - Churned
+    if (previousSnapshot) {
+      const startMRR = previousSnapshot.mrr.total
+      const endMRR = mrrData.total
+      const calculatedEndMRR = startMRR + newMRR.total + expansionMRR.total + reactivationMRR.revenue - contractionMRR.total - churnedMRR.total
+      const difference = Math.abs(endMRR - calculatedEndMRR)
+
+      console.log('[Snapshot] MRR Balance Equation:')
+      console.log(`  Start MRR: $${startMRR.toFixed(2)}`)
+      console.log(`  + New MRR: $${newMRR.total.toFixed(2)}`)
+      console.log(`  + Expansion MRR: $${expansionMRR.total.toFixed(2)}`)
+      console.log(`  + Reactivation MRR: $${reactivationMRR.revenue.toFixed(2)}`)
+      console.log(`  - Contraction MRR: $${contractionMRR.total.toFixed(2)}`)
+      console.log(`  - Churned MRR: $${churnedMRR.total.toFixed(2)}`)
+      console.log(`  = Calculated End MRR: $${calculatedEndMRR.toFixed(2)}`)
+      console.log(`  Actual End MRR: $${endMRR.toFixed(2)}`)
+      console.log(`  Difference: $${difference.toFixed(2)} ${difference > 1 ? '⚠️' : '✓'}`)
+    }
+
+    // 11. Calculate revenue metrics
     const totalRevenue = payments.reduce((sum, p) => p.status === 'paid' ? sum + p.total : sum, 0)
     const recurringRevenue = mrrData.total * 30 // Approximate monthly recurring
     const nonRecurringRevenue = totalRevenue - recurringRevenue
 
-    // Calculate net revenue
     const grossRevenue = totalRevenue
     const refundedAmount = refundMetrics.refundedAmount
     const processingFees = totalRevenue * 0.029 + (paymentMetrics.totalPayments * 0.30) // Estimate 2.9% + $0.30 per transaction
     const netRevenueTotal = grossRevenue - refundedAmount - processingFees
 
-    // Calculate active customers
     const activeCustomersCount = activeUniqueSubscribers
-    const newCustomersCount = enrichedMemberships.filter(m => {
-      const createdAt = m.createdAt || 0
-      const thirtyDaysAgo = (Date.now() / 1000) - (30 * 24 * 60 * 60)
-      return createdAt > thirtyDaysAgo && m.status === 'active'
-    }).length
 
     // 7. Store comprehensive snapshot in MongoDB
     await metricsRepository.upsertDailySnapshot(companyId, {
@@ -105,48 +149,48 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
         fees: processingFees,
       },
       newMRR: {
-        total: mrrData.total * 0.1, // Placeholder - implement proper calculation
-        customers: newCustomersCount,
-        growth: 0,
+        total: newMRR.total,
+        customers: newMRR.customers,
+        growth: newMRR.growth,
       },
       expansionMRR: {
-        total: 0, // Implement expansion tracking
-        rate: 0,
-        customers: 0,
+        total: expansionMRR.total,
+        rate: expansionMRR.rate,
+        customers: expansionMRR.customers,
       },
       contractionMRR: {
-        total: 0, // Implement contraction tracking
-        rate: 0,
-        customers: 0,
+        total: contractionMRR.total,
+        rate: contractionMRR.rate,
+        customers: contractionMRR.customers,
       },
       churnedMRR: {
-        total: 0, // Implement churn tracking
-        rate: 0,
-        customers: subscriberMetrics.cancelled,
+        total: churnedMRR.total,
+        rate: churnedMRR.rate,
+        customers: churnedMRR.customers,
       },
       activeCustomers: {
         total: activeCustomersCount,
-        new: newCustomersCount,
-        returning: activeCustomersCount - newCustomersCount,
+        new: newMRR.customers,
+        returning: activeCustomersCount - newMRR.customers,
         growth: 0,
       },
       newCustomers: {
-        total: newCustomersCount,
+        total: newMRR.customers,
         growth: 0,
       },
       upgrades: {
-        total: 0, // Implement upgrade tracking
-        revenue: 0,
-        customers: 0,
+        total: expansionMRR.customers,
+        revenue: expansionMRR.total,
+        customers: expansionMRR.customers,
       },
       downgrades: {
-        total: 0, // Implement downgrade tracking
-        lostRevenue: 0,
-        customers: 0,
+        total: contractionMRR.customers,
+        lostRevenue: contractionMRR.total,
+        customers: contractionMRR.customers,
       },
       reactivations: {
-        total: 0, // Implement reactivation tracking
-        revenue: 0,
+        total: reactivationMRR.total,
+        revenue: reactivationMRR.revenue,
       },
       cancellations: {
         total: subscriberMetrics.cancelled,
@@ -190,19 +234,19 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
         growth: 0,
       },
       revenueChurnRate: {
-        rate: 0, // Calculate from MRR movements
-        amount: 0,
+        rate: revenueChurnRate,
+        amount: churnedMRR.total + contractionMRR.total,
       },
       customerChurnRate: {
         rate: (subscriberMetrics.cancelled / subscriberMetrics.total) * 100,
         count: subscriberMetrics.cancelled,
       },
       quickRatio: {
-        value: 0, // (New MRR + Expansion MRR) / (Churned MRR + Contraction MRR)
-        newMRR: 0,
-        expansionMRR: 0,
-        churnedMRR: 0,
-        contractionMRR: 0,
+        value: quickRatioValue,
+        newMRR: newMRR.total,
+        expansionMRR: expansionMRR.total,
+        churnedMRR: churnedMRR.total,
+        contractionMRR: contractionMRR.total,
       },
       metadata: {
         totalMemberships: allMemberships.length,
