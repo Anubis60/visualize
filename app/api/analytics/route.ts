@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllMemberships, getAllPayments, getAllPlans, getAllMembers } from '@/lib/whop/helpers'
+import { getAllMemberships, getAllPayments, getAllPlans } from '@/lib/whop/helpers'
 import { whopClient } from '@/lib/whop/sdk'
 import { calculateMRR, calculateARR, calculateARPU } from '@/lib/analytics/mrr'
 import { calculateSubscriberMetrics, getActiveUniqueSubscribers } from '@/lib/analytics/subscribers'
@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
     const allMemberships = await getAllMemberships(companyId)
     const allPlans = await getAllPlans(companyId)
     const payments = await getAllPayments(companyId)
-    const members = await getAllMembers(companyId)
 
     // Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
@@ -144,7 +143,6 @@ export async function GET(request: NextRequest) {
           memberships: allMemberships,
           plans: allPlans,
           transactions: payments,
-          members: members,
         }
       })
       console.log('[MongoDB] Stored analytics data for all chart pages to reference')

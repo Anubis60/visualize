@@ -196,7 +196,6 @@ export interface MetricsSnapshot {
     memberships?: unknown[] // Full membership data from Whop API
     plans?: unknown[] // Full plan data from Whop API
     transactions?: unknown[] // Full transaction/payment data from Whop API
-    members?: unknown[] // Full members data from Whop API (separate from memberships)
   }
 }
 

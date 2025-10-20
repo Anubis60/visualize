@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
     // Extract data from rawData
     const plans = snapshot.rawData?.plans || []
     const company = snapshot.rawData?.company || null
-    const members = snapshot.rawData?.members || []
 
     // Return the same structure as /api/analytics but from MongoDB
     return NextResponse.json({
@@ -46,7 +45,6 @@ export async function GET(request: NextRequest) {
       refunds: snapshot.refunds,
       plans,
       company,
-      members,
       timestamp: snapshot.date,
       cached: true,
       cachedAt: snapshot.date,
