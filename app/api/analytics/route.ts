@@ -22,9 +22,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all data from SDK
-    console.log(`[Whop SDK] Fetching company data for: ${companyId}`)
+    console.log(`[Whop SDK] ========================================`)
+    console.log(`[Whop SDK] REQUESTED COMPANY ID: ${companyId}`)
+    console.log(`[Whop SDK] ========================================`)
     const company = await whopClient.companies.retrieve(companyId)
-    console.log(`[Whop SDK] ✓ Fetched company: ${company.title}`)
+    console.log(`[Whop SDK] ========================================`)
+    console.log(`[Whop SDK] RETURNED COMPANY ID: ${company.id}`)
+    console.log(`[Whop SDK] RETURNED COMPANY TITLE: ${company.title}`)
+    console.log(`[Whop SDK] ========================================`)
+
+    if (company.id !== companyId) {
+      console.error(`[Whop SDK] ⚠️  WARNING: Requested ${companyId} but got ${company.id}`)
+    }
 
     const allMemberships = await getAllMemberships(companyId)
     const allPlans = await getAllPlans(companyId)
