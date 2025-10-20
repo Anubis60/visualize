@@ -118,6 +118,28 @@ export async function getAllPlans(companyId: string) {
 }
 
 /**
+ * Fetch all members for a company using auto-pagination
+ * Returns raw member data from SDK
+ */
+export async function getAllMembers(companyId: string) {
+  console.log(`[Whop SDK] Fetching members for company: ${companyId}`);
+  const members = [];
+  let count = 0;
+  // @ts-expect-error - members endpoint exists in API but not typed in current SDK version
+  for await (const member of whopClient.members.list({
+    company_id: companyId
+  })) {
+    count++;
+    if (count % 100 === 0) {
+      console.log(`[Whop SDK] Fetched ${count} members...`);
+    }
+    members.push(member);
+  }
+  console.log(`[Whop SDK] ✓ Fetched total ${count} members`);
+  return members;
+}
+
+/**
  * Get company details
  */
 export async function getCompany(companyId: string) {

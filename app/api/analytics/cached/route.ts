@@ -27,8 +27,10 @@ export async function GET(request: NextRequest) {
 
     console.log(`[MongoDB Read] ✓ Retrieved cached analytics from ${snapshot.date}`)
 
-    // Extract plans from rawData
+    // Extract data from rawData
     const plans = snapshot.rawData?.plans || []
+    const company = snapshot.rawData?.company || null
+    const members = snapshot.rawData?.members || []
 
     // Return the same structure as /api/analytics but from MongoDB
     return NextResponse.json({
@@ -43,6 +45,8 @@ export async function GET(request: NextRequest) {
       payments: snapshot.payments,
       refunds: snapshot.refunds,
       plans,
+      company,
+      members,
       timestamp: snapshot.date,
       cached: true,
       cachedAt: snapshot.date,

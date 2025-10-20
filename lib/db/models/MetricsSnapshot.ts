@@ -192,15 +192,11 @@ export interface MetricsSnapshot {
 
   // Raw data cache (for faster loading without API calls)
   rawData?: {
-    company?: {
-      id: string
-      title: string
-      logo?: string
-      bannerImage?: string
-    }
+    company?: unknown // Full company data from Whop API
     memberships?: unknown[] // Full membership data from Whop API
     plans?: unknown[] // Full plan data from Whop API
     transactions?: unknown[] // Full transaction/payment data from Whop API
+    members?: unknown[] // Full members data from Whop API (separate from memberships)
   }
 }
 
