@@ -78,7 +78,15 @@ export function AnalyticsProvider({
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/analytics?company_id=${companyId}`)
+      // Try to read from MongoDB cache first
+      let response = await fetch(`/api/analytics/cached?company_id=${companyId}`)
+
+      // If no cached data (404), fetch from Whop SDK once and store in MongoDB
+      if (response.status === 404) {
+        console.log('[AnalyticsContext] No cached data found, fetching from Whop SDK...')
+        response = await fetch(`/api/analytics?company_id=${companyId}`)
+      }
+
       if (!response.ok) {
         throw new Error('Failed to fetch analytics')
       }
