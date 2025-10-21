@@ -1,4 +1,5 @@
 import { MetricsSnapshot } from '@/lib/db/models/MetricsSnapshot'
+import type { MembershipListResponse } from '@whop/sdk/resources/memberships'
 
 /**
  * MRR Movement Calculations
@@ -11,18 +12,31 @@ import { MetricsSnapshot } from '@/lib/db/models/MetricsSnapshot'
 
 interface RawMembership {
   id: string
-  status: string
+  status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'completed' | 'expired'
+  createdAt: number
+  canceledAt: number | null
+  expiresAt: number | null
+  cancelationReason: string | null
+  totalSpend: number
   plan?: { id: string }
-  member?: { id: string }
-  user?: { id: string }
-  createdAt?: number
+  accessPass: undefined
+  member: { id: string; email: string; username: string; name: string | null } | null
+  promoCode: MembershipListResponse['promo_code']
 }
 
 interface RawPlan {
   id: string
-  planType: string
   rawRenewalPrice: number
-  billingPeriod: number
+  rawInitialPrice: number
+  billingPeriod: number | null
+  planType: 'one_time' | 'renewal'
+  baseCurrency: string
+  description: string | null
+  accessPass: { id: string; title: string } | null
+  createdAt: number
+  updatedAt: number
+  visibility: string
+  releaseMethod: string
 }
 
 /**
@@ -45,7 +59,7 @@ function getMembershipMRR(
   planMap: Map<string, RawPlan>
 ): number {
   const plan = planMap.get(membership.plan?.id || '')
-  if (!plan || plan.planType !== 'renewal') return 0
+  if (!plan || plan.planType !== 'renewal' || !plan.billingPeriod) return 0
 
   return normalizeToMonthly(plan.rawRenewalPrice, plan.billingPeriod)
 }
@@ -92,7 +106,8 @@ export function calculateExpansionMRR(
     // Expansion = current MRR > previous MRR
     if (currentMRR > previousMRR) {
       expansionMRR += (currentMRR - previousMRR)
-      expandedCustomers.add(currentMembership.member?.id || currentMembership.user?.id)
+      const customerId = currentMembership.member?.id
+      if (customerId) expandedCustomers.add(customerId)
     }
   }
 
@@ -144,7 +159,8 @@ export function calculateContractionMRR(
     // Contraction = current MRR < previous MRR
     if (currentMRR < previousMRR && currentMRR > 0) {
       contractionMRR += (previousMRR - currentMRR)
-      contractedCustomers.add(currentMembership.member?.id || currentMembership.user?.id)
+      const customerId = currentMembership.member?.id
+      if (customerId) contractedCustomers.add(customerId)
     }
   }
 
@@ -198,7 +214,8 @@ export function calculateChurnedMRR(
     if (!currentActiveMembershipIds.has(previousMembership.id)) {
       const mrr = getMembershipMRR(previousMembership, previousPlanMap)
       churnedMRR += mrr
-      churnedCustomers.add(previousMembership.member?.id || previousMembership.user?.id)
+      const customerId = previousMembership.member?.id
+      if (customerId) churnedCustomers.add(customerId)
     }
   }
 
@@ -225,7 +242,7 @@ export function calculateNewMRR(
   // Group memberships by user
   const userMemberships = new Map<string, RawMembership[]>()
   for (const membership of currentMemberships) {
-    const userId = membership.member?.id || membership.user?.id
+    const userId = membership.member?.id
     if (!userId) continue
 
     if (!userMemberships.has(userId)) {
@@ -287,7 +304,7 @@ export function calculateReactivationMRR(
   const previouslyCanceledUsers = new Set<string>()
   for (const prevMembership of previousMemberships) {
     if (prevMembership.status === 'canceled' || prevMembership.status === 'expired') {
-      const userId = prevMembership.member?.id || prevMembership.user?.id
+      const userId = prevMembership.member?.id
       if (userId) previouslyCanceledUsers.add(userId)
     }
   }
@@ -295,7 +312,7 @@ export function calculateReactivationMRR(
   // Group current memberships by user
   const userMemberships = new Map<string, RawMembership[]>()
   for (const membership of currentMemberships) {
-    const userId = membership.member?.id || membership.user?.id
+    const userId = membership.member?.id
     if (!userId) continue
 
     if (!userMemberships.has(userId)) {
