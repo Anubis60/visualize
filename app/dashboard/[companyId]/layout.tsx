@@ -38,7 +38,7 @@ export default function DashboardLayout({
             setShowSubscriptionModal(true)
           }
         }
-      } catch (err) {
+      } catch {
         // Error checking subscription
       } finally {
         setLoading(false)

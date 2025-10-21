@@ -1,38 +1,13 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { DollarSign, Users, TrendingUp, Activity } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useAnalytics } from '@/lib/contexts/AnalyticsContext'
 
-interface AnalyticsData {
-  mrr: {
-    total: number
-    breakdown: {
-      monthly: number
-      annual: number
-      quarterly: number
-      other: number
-    }
-  }
-  arr: number
-  arpu: number
-  subscribers: {
-    active: number
-    cancelled: number
-    past_due: number
-    trialing: number
-    total: number
-  }
-  activeUniqueSubscribers: number
-  cached?: boolean
-  timestamp?: string
-  snapshotDate?: string
-}
-
 export default function DashboardPage({ params }: { params: Promise<{ companyId: string }> }) {
-  const { companyId } = use(params)
+  use(params)
 
   // Use shared analytics context - fetched ONCE in layout
   const { data: analytics, loading, error, refetch } = useAnalytics()

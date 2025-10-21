@@ -180,8 +180,7 @@ export function calculateContractionMRR(
  */
 export function calculateChurnedMRR(
   previousSnapshot: MetricsSnapshot | null,
-  currentMemberships: RawMembership[],
-  _currentPlans: RawPlan[]
+  currentMemberships: RawMembership[]
 ): { total: number; rate: number; customers: number } {
   if (!previousSnapshot?.rawData?.memberships || !previousSnapshot?.rawData?.plans) {
     return { total: 0, rate: 0, customers: 0 }
@@ -255,7 +254,7 @@ export function calculateNewMRR(
   let newCustomers = 0
 
   // For each user, find their first membership
-  for (const [userId, memberships] of userMemberships.entries()) {
+  for (const memberships of userMemberships.values()) {
     // Sort by created_at to find first membership
     const sorted = memberships.sort((a, b) => {
       const aTime = a.createdAt || 0

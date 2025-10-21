@@ -20,7 +20,8 @@ async function runHistoricalSnapshot(): Promise<void> {
       }
 
     }
-  } catch (error) {
+  } catch {
+    // Ignore errors during startup
   }
 }
 
@@ -32,7 +33,8 @@ async function runDailySnapshot(): Promise<void> {
 
   try {
     await captureAllSnapshots()
-  } catch (error) {
+  } catch {
+    // Ignore errors during snapshot
   }
 }
 

@@ -19,7 +19,7 @@ interface ChartDataPoint {
 
 export default function CLVPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const [chartData, _setChartData] = useState<ChartDataPoint[]>([])
   const [loading, setLoading] = useState(true)
 
     useEffect(() => {

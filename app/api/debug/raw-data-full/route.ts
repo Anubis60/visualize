@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       message: 'Debug endpoint accessed',
       timestamp: new Date().toISOString(),
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to process debug request' },
       { status: 500 }

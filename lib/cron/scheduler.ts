@@ -26,7 +26,8 @@ export function initializeCronJobs() {
       try {
         const { captureAllSnapshots } = await import('@/lib/services/snapshotService')
         await captureAllSnapshots()
-      } catch (error) {
+      } catch {
+        // Ignore errors in scheduled snapshot capture
       }
     }, {
       timezone: "America/New_York"

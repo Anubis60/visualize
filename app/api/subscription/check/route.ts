@@ -72,7 +72,7 @@ export async function GET(request: Request) {
       },
       subscriptionInfo
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to check subscription status' },
       { status: 500 }

@@ -77,7 +77,7 @@ async function verifyWhopSignature(payload: string, signature: string | null) {
     const expectedSignature = hmac.digest('hex');
 
     return expectedSignature === receivedSignature;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

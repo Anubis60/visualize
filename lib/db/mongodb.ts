@@ -59,6 +59,7 @@ export async function initializeIndexes(): Promise<void> {
       { name: 'timestamp_idx' }
     )
 
-  } catch (error) {
+  } catch {
+    // Ignore errors during cleanup
   }
 }

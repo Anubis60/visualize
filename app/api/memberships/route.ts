@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       count: memberships.length,
       cached: false,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch memberships' },
       { status: 500 }

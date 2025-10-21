@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
         businessType: company.business_type || undefined,
         rawData: company, // Store full Whop company object
       })
-    } catch (error) {
+    } catch {
+      // Ignore errors when saving to DB - still return company data
     }
 
     return NextResponse.json({
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
       bannerImage: undefined, // SDK doesn't provide bannerImage
       cached: false,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch company data' },
       { status: 500 }

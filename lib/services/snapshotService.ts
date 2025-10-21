@@ -73,7 +73,7 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
     // 8. Calculate MRR movements using snapshot comparison
     const expansionMRR = calculateExpansionMRR(previousSnapshot, allMemberships, allPlans)
     const contractionMRR = calculateContractionMRR(previousSnapshot, allMemberships, allPlans)
-    const churnedMRR = calculateChurnedMRR(previousSnapshot, allMemberships, allPlans)
+    const churnedMRR = calculateChurnedMRR(previousSnapshot, allMemberships)
     const newMRR = calculateNewMRR(allMemberships, allPlans)
     const reactivationMRR = calculateReactivationMRR(previousSnapshot, allMemberships, allPlans)
 

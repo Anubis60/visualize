@@ -13,14 +13,9 @@ interface AnalyticsData {
   }
 }
 
-interface ChartDataPoint {
-  date: string
-  value: number
-}
-
 export default function CashFlowPage({ params }: { params: Promise<{ companyId: string }> }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const [chartData, _setChartData] = useState<Array<{ date: string; value: number }>>([])
   const [loading, setLoading] = useState(true)
 
     useEffect(() => {

@@ -117,7 +117,8 @@ export async function POST(request: Request) {
           },
           { upsert: true }
         );
-      } catch (dbError) {
+      } catch {
+        // Ignore DB errors - continue with checkout
       }
     }
 
