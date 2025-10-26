@@ -76,6 +76,8 @@ export function AnalyticsProvider({
   const [isFetching, setIsFetching] = useState(false)
 
   const fetchAnalytics = async () => {
+    console.log('[AnalyticsContext] 🚀 Starting fetchAnalytics for companyId:', companyId)
+
     // Prevent duplicate simultaneous fetches
     if (isFetching) {
       console.log('[AnalyticsContext] Fetch already in progress, skipping duplicate request')
@@ -87,24 +89,30 @@ export function AnalyticsProvider({
     setError(null)
     try {
       // Try to read from MongoDB cache first
+      console.log('[AnalyticsContext] 📡 Fetching cached data from /api/analytics/cached')
       let response = await fetch(`/api/analytics/cached?company_id=${companyId}`)
+      console.log('[AnalyticsContext] 📥 Cached response status:', response.status)
 
       // If no cached data (404), fetch from Whop SDK once and store in MongoDB
       if (response.status === 404) {
-        console.log('[AnalyticsContext] No cached data found, fetching from Whop SDK...')
+        console.log('[AnalyticsContext] ⚠️ No cached data found, fetching from Whop SDK...')
         response = await fetch(`/api/analytics?company_id=${companyId}`)
+        console.log('[AnalyticsContext] 📥 Fresh data response status:', response.status)
       }
 
       if (!response.ok) {
         throw new Error('Failed to fetch analytics')
       }
       const analyticsData = await response.json()
+      console.log('[AnalyticsContext] ✅ Analytics data received:', analyticsData)
       setData(analyticsData)
     } catch (err) {
+      console.error('[AnalyticsContext] ❌ Error fetching analytics:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
       setIsFetching(false)
+      console.log('[AnalyticsContext] 🏁 Fetch complete')
     }
   }
 
