@@ -3,7 +3,7 @@
 import { Sidebar } from '@/components/Sidebar'
 import { DashboardHeader } from '@/components/DashboardHeader'
 import { useSidebarStore } from '@/lib/stores/sidebarStore'
-import SubscriptionModal from '@/components/SubscriptionModal'
+// import SubscriptionModal from '@/components/SubscriptionModal' // TODO: Uncomment when ready to add subscription gating
 import { AnalyticsProvider } from '@/lib/contexts/AnalyticsContext'
 import { use, useEffect, useState } from 'react'
 
@@ -16,20 +16,14 @@ export default function DashboardLayout({
 }) {
   const { companyId } = use(params)
   const collapsed = useSidebarStore(state => state.collapsed)
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
+  // const [showSubscriptionModal, setShowSubscriptionModal] = useState(false) // TODO: Uncomment when ready for subscription gating
+  // const [userId, setUserId] = useState<string | null>(null) // TODO: Uncomment when ready for subscription gating
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function initializeDashboard() {
       try {
-        // Get userId from Whop's window context (provided by Whop SDK)
-        const whopContext = (window as typeof window & { __WHOP__?: { userId?: string } }).__WHOP__
-        const whopUserId = whopContext?.userId || companyId
-        setUserId(whopUserId)
-
         // Register webhook for this company (if not already registered)
-        // This happens in parallel with subscription check
         fetch('/api/webhooks/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -47,6 +41,13 @@ export default function DashboardLayout({
             console.error('[Dashboard] Webhook registration error:', error);
           });
 
+        /* TODO: Uncomment when ready for subscription gating
+
+        // Get userId from Whop's window context (provided by Whop SDK)
+        const whopContext = (window as typeof window & { __WHOP__?: { userId?: string } }).__WHOP__
+        const whopUserId = whopContext?.userId || companyId
+        setUserId(whopUserId)
+
         // Check subscription status by companyId
         const subscriptionResponse = await fetch(`/api/subscription/check?companyId=${companyId}`)
         if (subscriptionResponse.ok) {
@@ -57,6 +58,8 @@ export default function DashboardLayout({
             setShowSubscriptionModal(true)
           }
         }
+
+        */
       } catch {
         // Error checking subscription
       } finally {
@@ -81,13 +84,16 @@ export default function DashboardLayout({
   return (
     <AnalyticsProvider companyId={companyId}>
       <div className="flex min-h-screen bg-gray-50">
-        {/* Subscription Modal - shows when user doesn't have access */}
+        {/* TODO: Uncomment when ready for subscription gating
+
         {showSubscriptionModal && userId && (
           <SubscriptionModal userId={userId} companyId={companyId} />
         )}
 
-        {/* Main Dashboard - blurred if no subscription */}
-        <div className={showSubscriptionModal ? 'filter blur-sm pointer-events-none w-full flex' : 'w-full flex'}>
+        */}
+
+        {/* Main Dashboard - no blur/gating for now */}
+        <div className="w-full flex">
           <Sidebar companyId={companyId} />
           <div className="flex-1 flex flex-col">
             <DashboardHeader companyId={companyId} />
