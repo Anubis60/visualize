@@ -60,8 +60,17 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     const priceInDollars = priceInCents / 100 // Convert to dollars
     const billingPeriod = planData.billingPeriod || 30 // Default to 30 days
 
+    console.log(`[MRR Debug] Membership ${membership.id}:`, {
+      priceInCents,
+      priceInDollars,
+      billingPeriod,
+      planId: planData.id
+    })
+
     // Normalize to monthly (30 days)
     const monthlyRevenue = (priceInDollars / billingPeriod) * 30
+
+    console.log(`[MRR Debug] Monthly revenue for ${membership.id}: $${monthlyRevenue}`)
 
     // Categorize by billing period
     if (billingPeriod === 30) {

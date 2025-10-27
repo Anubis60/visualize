@@ -23,6 +23,32 @@ export default function DashboardLayout({
   useEffect(() => {
     async function initializeDashboard() {
       try {
+        // Trigger backfill for this company (runs once on first visit)
+        // Check if backfill has already been done by checking localStorage
+        const backfillKey = `backfill_done_${companyId}`;
+        const backfillDone = localStorage.getItem(backfillKey);
+
+        if (!backfillDone) {
+          console.log('[Dashboard] Starting historical data backfill...');
+          fetch(`/api/backfill?company_id=${companyId}`, {
+            method: 'POST',
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                console.log('[Dashboard] ✓ Historical data backfill completed');
+                localStorage.setItem(backfillKey, 'true');
+              } else {
+                console.error('[Dashboard] Backfill failed:', data.error);
+              }
+            })
+            .catch((error) => {
+              console.error('[Dashboard] Backfill error:', error);
+            });
+        } else {
+          console.log('[Dashboard] Backfill already completed for this company');
+        }
+
         /* TODO: Uncomment when Whop SDK is updated with webhook methods
 
         // Register webhook for this company (if not already registered)
