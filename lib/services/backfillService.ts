@@ -249,9 +249,9 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
         },
         rawData: {
           company: {
-            id: companyId,
-            title: companyData?.title || 'Company',
-            logo: undefined,
+            id: company.id,
+            title: company.title,
+            logo: company.logo?.url,
             bannerImage: undefined,
           },
           memberships: membershipsOnDate,
