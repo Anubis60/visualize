@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
         id: company.id,
         title: company.title,
         route: company.route || companyId,
-        logo: undefined, // SDK doesn't provide logo
-        bannerImage: undefined, // SDK doesn't provide bannerImage
+        logo: company.logo?.url || undefined,
+        bannerImage: undefined, // SDK doesn't provide bannerImage yet
         industryType: company.industry_type || undefined,
         businessType: company.business_type || undefined,
         rawData: company, // Store full Whop company object
@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       id: company.id,
       title: company.title,
-      logo: undefined, // SDK doesn't provide logo
-      bannerImage: undefined, // SDK doesn't provide bannerImage
+      logo: company.logo?.url || undefined,
+      bannerImage: undefined, // SDK doesn't provide bannerImage yet
       cached: false,
     })
   } catch {

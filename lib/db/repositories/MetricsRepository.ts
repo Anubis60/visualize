@@ -1,5 +1,6 @@
 import { getDatabase } from '../mongodb'
 import { MetricsSnapshot, DailyMetrics } from '../models/MetricsSnapshot'
+import { historicalMetricsRepository } from './HistoricalMetricsRepository'
 
 export class MetricsRepository {
   private async getCollection() {
@@ -139,6 +140,7 @@ export class MetricsRepository {
 
   /**
    * Get last N days of snapshots (daily aggregated - last snapshot per day)
+   * Combines data from both live metrics_snapshots and historical_metrics_snapshots
    */
   async getRecentSnapshots(companyId: string, days: number = 30): Promise<MetricsSnapshot[]> {
     const startDate = new Date()
@@ -148,7 +150,31 @@ export class MetricsRepository {
     const endDate = new Date()
     endDate.setUTCHours(23, 59, 59, 999)
 
-    return this.getDailyAggregatedSnapshots(companyId, startDate, endDate)
+    // Fetch from both collections
+    const [liveSnapshots, historicalSnapshots] = await Promise.all([
+      this.getDailyAggregatedSnapshots(companyId, startDate, endDate),
+      historicalMetricsRepository.getHistoricalSnapshots(companyId, startDate, endDate)
+    ])
+
+    // Merge and deduplicate by date (prefer live snapshots over historical for same date)
+    const snapshotMap = new Map<string, MetricsSnapshot>()
+
+    // Add historical first
+    historicalSnapshots.forEach(snapshot => {
+      const dateKey = new Date(snapshot.date).toISOString().split('T')[0]
+      snapshotMap.set(dateKey, snapshot)
+    })
+
+    // Override with live snapshots (they're more up-to-date)
+    liveSnapshots.forEach(snapshot => {
+      const dateKey = new Date(snapshot.date).toISOString().split('T')[0]
+      snapshotMap.set(dateKey, snapshot)
+    })
+
+    // Sort by date
+    return Array.from(snapshotMap.values()).sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
   }
 
   /**
