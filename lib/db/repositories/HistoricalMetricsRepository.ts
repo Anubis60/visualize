@@ -8,7 +8,12 @@ import { MetricsSnapshot } from '../models/MetricsSnapshot'
 export class HistoricalMetricsRepository {
   private async getCollection() {
     const db = await getDatabase()
-    return db.collection<MetricsSnapshot>('historical_metrics_snapshots')
+    const collection = db.collection<MetricsSnapshot>('historical_metrics_snapshots')
+
+    // Ensure index exists for efficient queries
+    await collection.createIndex({ companyId: 1, date: 1 })
+
+    return collection
   }
 
   /**
@@ -64,6 +69,7 @@ export class HistoricalMetricsRepository {
   /**
    * Get all historical snapshots for a company (for charts)
    * Returns one snapshot per day, sorted by date
+   * Limited to 365 days to prevent memory issues
    */
   async getHistoricalSnapshots(
     companyId: string,
@@ -80,9 +86,11 @@ export class HistoricalMetricsRepository {
       if (endDate) query.date.$lte = endDate
     }
 
+    // Use indexed query with limit to prevent memory issues
     return collection
       .find(query)
       .sort({ date: 1 })
+      .limit(365) // Max 1 year of data
       .toArray()
   }
 
