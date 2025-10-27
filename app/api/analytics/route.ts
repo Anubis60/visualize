@@ -35,9 +35,15 @@ export async function GET(request: NextRequest) {
       console.error(`[Whop SDK] ⚠️  WARNING: Requested ${companyId} but got ${company.id}`)
     }
 
+    console.log('[Analytics] Starting data fetch...')
     const allMemberships = await getAllMemberships(companyId)
+    console.log(`[Analytics] ✓ Fetched ${allMemberships.length} memberships`)
+
     const allPlans = await getAllPlans(companyId)
+    console.log(`[Analytics] ✓ Fetched ${allPlans.length} plans`)
+
     const payments = await getAllPayments(companyId)
+    console.log(`[Analytics] ✓ Fetched ${payments.length} payments`)
 
     // Enrich memberships with plan data
     const planMap = new Map<string, Plan>()
@@ -154,8 +160,14 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(responseData)
   } catch (error) {
+    console.error('[Analytics] ERROR:', error)
+    console.error('[Analytics] ERROR Stack:', error instanceof Error ? error.stack : 'No stack')
     return NextResponse.json(
-      { error: 'Failed to calculate analytics', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to calculate analytics',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
