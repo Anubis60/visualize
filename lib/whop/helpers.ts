@@ -97,8 +97,8 @@ export async function getAllPlans(companyId: string) {
     // Map SDK response to our Plan interface
     plans.push({
       id: plan.id,
-      rawRenewalPrice: plan.renewal_price,
-      rawInitialPrice: plan.initial_price,
+      rawRenewalPrice: plan.renewal_price, // Whop returns prices in cents
+      rawInitialPrice: plan.initial_price, // Whop returns prices in cents
       billingPeriod: plan.billing_period,
       planType: (plan.plan_type === 'one_time' ? 'one_time' : 'renewal') as 'one_time' | 'renewal',
       baseCurrency: String(plan.currency),
@@ -125,7 +125,6 @@ export async function getAllMembers(companyId: string) {
   console.log(`[Whop SDK] Fetching members for company: ${companyId}`);
   const members = [];
   let count = 0;
-  // @ts-expect-error - members endpoint exists in API but not typed in current SDK version
   for await (const member of whopClient.members.list({
     company_id: companyId
   })) {

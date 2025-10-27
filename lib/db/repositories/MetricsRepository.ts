@@ -21,11 +21,27 @@ export class MetricsRepository {
   }
 
   /**
-   * Get or create today's snapshot
-   * If a snapshot already exists for today, update it
-   * Optionally accepts a specific date for backfilling historical data
+   * Insert a snapshot with precise timestamp (for webhook-triggered snapshots)
+   * Multiple snapshots can exist for the same day with different timestamps
    */
-  async upsertDailySnapshot(companyId: string, snapshot: Omit<MetricsSnapshot, '_id' | 'companyId' | 'date' | 'timestamp'>, snapshotDate?: Date): Promise<void> {
+  async insertSnapshot(companyId: string, snapshot: Omit<MetricsSnapshot, '_id' | 'companyId' | 'date' | 'timestamp'>): Promise<void> {
+    const collection = await this.getCollection()
+    const now = new Date()
+
+    await collection.insertOne({
+      ...snapshot,
+      companyId,
+      date: now,
+      timestamp: now,
+    } as MetricsSnapshot)
+  }
+
+  /**
+   * Upsert daily snapshot for backfilling (normalizes to midnight UTC)
+   * Used only by backfill service to reconstruct historical data
+   * If a snapshot already exists for a day, update it
+   */
+  async upsertDailySnapshotForBackfill(companyId: string, snapshot: Omit<MetricsSnapshot, '_id' | 'companyId' | 'date' | 'timestamp'>, snapshotDate?: Date): Promise<void> {
     const collection = await this.getCollection()
 
     // Use provided date or default to today
@@ -73,21 +89,66 @@ export class MetricsRepository {
   }
 
   /**
-   * Get last N days of snapshots
+   * Get daily aggregated snapshots (last snapshot of each day)
+   * Used for chart display - handles multiple intraday snapshots
+   */
+  async getDailyAggregatedSnapshots(
+    companyId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<MetricsSnapshot[]> {
+    const collection = await this.getCollection()
+
+    // MongoDB aggregation to get the last snapshot of each day
+    const result = await collection.aggregate<MetricsSnapshot>([
+      {
+        $match: {
+          companyId,
+          date: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $addFields: {
+          dayOnly: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$date'
+            }
+          }
+        }
+      },
+      {
+        $sort: { timestamp: -1 }
+      },
+      {
+        $group: {
+          _id: '$dayOnly',
+          snapshot: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$snapshot' }
+      },
+      {
+        $sort: { date: 1 }
+      }
+    ]).toArray()
+
+    return result
+  }
+
+  /**
+   * Get last N days of snapshots (daily aggregated - last snapshot per day)
    */
   async getRecentSnapshots(companyId: string, days: number = 30): Promise<MetricsSnapshot[]> {
-    const collection = await this.getCollection()
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
     startDate.setUTCHours(0, 0, 0, 0)
 
-    return collection
-      .find({
-        companyId,
-        date: { $gte: startDate }
-      })
-      .sort({ date: 1 })
-      .toArray()
+    const endDate = new Date()
+    endDate.setUTCHours(23, 59, 59, 999)
+
+    return this.getDailyAggregatedSnapshots(companyId, startDate, endDate)
   }
 
   /**

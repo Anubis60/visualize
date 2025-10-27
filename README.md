@@ -29,7 +29,25 @@ A comprehensive analytics platform that tracks and visualizes SaaS metrics for W
     ↓
 User navigates to /dashboard/[company-id]
     ↓
-System initializes for this company
+Dashboard calls /api/webhooks/register
+    ↓
+Check: Is webhook already registered for this company?
+    ↓
+┌─────────────────────────────────────────────────────────────┐
+│  AUTOMATIC WEBHOOK REGISTRATION (First Visit Only)          │
+└─────────────────────────────────────────────────────────────┘
+    ↓
+[Register webhook via Whop SDK]
+  • Create webhook for specific company (resourceId)
+  • Subscribe to events:
+    - membership.activated
+    - membership.deactivated
+    - payment.succeeded
+    - payment.failed
+  • Endpoint: /api/webhooks/whop/business
+    ↓
+[Store webhook registration in MongoDB]
+  • webhookId, webhookSecret, companyId
     ↓
 ┌─────────────────────────────────────────────────────────────┐
 │  INITIAL BACKFILL (One-Time, ~2-5 minutes)                  │
@@ -46,17 +64,6 @@ System initializes for this company
   • Store in MongoDB
     ↓
 Result: 366 snapshots (today + 365 past days)
-    ↓
-┌─────────────────────────────────────────────────────────────┐
-│  STEP 2: WEBHOOK SUBSCRIPTION                               │
-└─────────────────────────────────────────────────────────────┘
-    ↓
-Register webhook endpoint with Whop
-Subscribe to events:
-  • membership.activated
-  • membership.deactivated
-  • payment.succeeded
-  • payment.failed
     ↓
 ┌─────────────────────────────────────────────────────────────┐
 │  STEP 3: ONGOING OPERATION (Real-Time)                      │
@@ -82,7 +89,82 @@ Subscribe to events:
 
 ### What Happens When a User Signs Up
 
-**Goal:** Fetch all historical data and reconstruct 365 days of metrics.
+**Goal:** Register webhook with Whop for this company, then fetch all historical data and reconstruct 365 days of metrics.
+
+### 1.0 Automatic Webhook Registration
+
+When a user first visits their dashboard (`/dashboard/[companyId]`), the system automatically registers a webhook with Whop to listen for events specific to that company's business.
+
+**Flow:**
+```typescript
+// Dashboard calls webhook registration endpoint
+fetch('/api/webhooks/register', {
+  method: 'POST',
+  body: JSON.stringify({ companyId: 'biz_abc123' })
+})
+
+// Backend checks if webhook already exists
+const isRegistered = await isWebhookRegistered(companyId);
+
+if (!isRegistered) {
+  // Register webhook with Whop SDK
+  const result = await whopClient.webhooks.createWebhook({
+    apiVersion: 'v1',
+    enabled: true,
+    events: [
+      'membership.activated',
+      'membership.deactivated',
+      'payment.succeeded',
+      'payment.failed'
+    ],
+    resourceId: companyId,  // The company to monitor
+    url: 'https://financier-xi.vercel.app/api/webhooks/whop/business'
+  });
+
+  // Store webhook registration in database
+  await db.collection('webhook_registrations').insertOne({
+    companyId,
+    webhookId: result.id,
+    webhookSecret: result.webhookSecret,
+    webhookUrl: result.url,
+    events: result.events,
+    enabled: true,
+    createdAt: new Date()
+  });
+
+  // Trigger initial backfill (runs in background)
+  await backfillCompanyHistory(companyId);
+}
+```
+
+**Webhook Registration Details:**
+- **Endpoint URL:** `https://financier-xi.vercel.app/api/webhooks/whop/business`
+- **Events Subscribed:**
+  - `membership.activated` - [docs](https://docs.whop.com/api-reference/memberships/membership-activated)
+  - `membership.deactivated` - [docs](https://docs.whop.com/api-reference/memberships/membership-deactivated)
+  - `payment.succeeded` - [docs](https://docs.whop.com/api-reference/payments/payment-succeeded)
+  - `payment.failed` - [docs](https://docs.whop.com/api-reference/payments/payment-failed)
+- **Resource ID:** The specific company ID (e.g., `biz_abc123`)
+- **API Version:** v1
+
+**Database Storage:**
+```typescript
+{
+  companyId: "biz_abc123",
+  webhookId: "wh_xxxxxxxxxx",          // Whop's webhook ID
+  webhookSecret: "ws_xxxxxxxxxx",      // Unique secret for this webhook
+  webhookUrl: "https://...",           // Our endpoint URL
+  events: ["membership.activated", ...],
+  enabled: true,
+  createdAt: "2025-01-15T10:00:00Z"
+}
+```
+
+**Why Per-Company Webhooks?**
+- Each company gets its own dedicated webhook
+- Whop only sends events for THAT specific company's business
+- More secure (each webhook has its own secret)
+- Easier to manage and debug
 
 ### 1.1 Data Fetching
 
@@ -151,7 +233,7 @@ async function generateHistoricalSnapshots(companyId: string) {
   for (let daysAgo = 365; daysAgo >= 0; daysAgo--) {
     const snapshotDate = new Date(now);
     snapshotDate.setDate(now.getDate() - daysAgo);
-    snapshotDate.setHours(5, 0, 0, 0); // 5 AM UTC
+    snapshotDate.setHours(0, 0, 0, 0); // Midnight UTC
 
     const snapshotTimestamp = snapshotDate.getTime() / 1000; // Unix seconds
 
@@ -263,33 +345,13 @@ async function calculateSnapshotMetrics({ date, memberships, plans, payments, co
 
 ---
 
-## 🔔 Step 2: Webhook Setup for Real-Time Updates
+## 🔔 Step 2: Real-Time Webhook Events
 
-### What Happens After Backfill
+### How Webhooks Work After Registration
 
-Once historical data is loaded, we switch to **real-time webhook updates** instead of polling or cron jobs.
+Once the webhook is registered (Step 1), Whop automatically sends events to your endpoint whenever something happens in the customer's business.
 
-### 2.1 Webhook Configuration
-
-**Setup in Whop Dashboard:**
-1. Navigate to your app settings in Whop
-2. Configure webhook endpoint: `https://your-app.com/api/webhooks/whop`
-3. Subscribe to events:
-   - `membership.activated` - New subscriptions, trials, reactivations
-   - `membership.deactivated` - Cancellations, expirations
-   - `payment.succeeded` - Successful payments and renewals
-   - `payment.failed` - Failed payment attempts
-   - `payment.pending` - Pending payments (optional)
-
-**Webhook Documentation:**
-- [Whop Webhooks Overview](https://docs.whop.com/webhooks)
-- [membership.activated](https://docs.whop.com/api-reference/memberships/membership-activated)
-- [membership.deactivated](https://docs.whop.com/api-reference/memberships/membership-deactivated)
-- [payment.succeeded](https://docs.whop.com/api-reference/payments/payment-succeeded)
-- [payment.failed](https://docs.whop.com/api-reference/payments/payment-failed)
-- [payment.pending](https://docs.whop.com/api-reference/payments/payment-pending)
-
-### 2.2 Webhook Payload Structure
+### 2.1 Webhook Payload Structure
 
 ```typescript
 // All Whop webhooks follow this structure
@@ -330,10 +392,10 @@ interface WhopWebhookPayload {
 }
 ```
 
-### 2.3 Webhook Handler Implementation
+### 2.2 Webhook Handler Implementation
 
 ```typescript
-// app/api/webhooks/whop/route.ts
+// app/api/webhooks/whop/business/route.ts
 
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';

@@ -123,8 +123,8 @@ export async function captureCompanySnapshot(companyId: string): Promise<void> {
 
     const activeCustomersCount = activeUniqueSubscribers
 
-    // 7. Store comprehensive snapshot in MongoDB
-    await metricsRepository.upsertDailySnapshot(companyId, {
+    // 7. Store comprehensive snapshot in MongoDB with precise timestamp
+    await metricsRepository.insertSnapshot(companyId, {
       mrr: {
         total: mrrData.total,
         breakdown: mrrData.breakdown,

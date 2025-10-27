@@ -55,7 +55,7 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
     for (let daysAgo = 365; daysAgo >= 0; daysAgo--) {
       const snapshotDate = new Date(now)
       snapshotDate.setDate(now.getDate() - daysAgo)
-      snapshotDate.setHours(5, 0, 0, 0) // Set to 5 AM like the cron job
+      snapshotDate.setHours(0, 0, 0, 0) // Set to midnight UTC
 
       const snapshotTimestamp = snapshotDate.getTime() / 1000
 
@@ -107,8 +107,8 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
         return createdAt > thirtyDaysBeforeSnapshot && m.status === 'active'
       }).length
 
-      // Store snapshot with the specific date
-      await metricsRepository.upsertDailySnapshot(companyId, {
+      // Store snapshot with the specific date (backfill uses midnight UTC normalization)
+      await metricsRepository.upsertDailySnapshotForBackfill(companyId, {
         mrr: {
           total: mrrData.total,
           breakdown: mrrData.breakdown,

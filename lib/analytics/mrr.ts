@@ -56,11 +56,12 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     }
 
     // Calculate monthly recurring revenue
-    const price = planData.rawRenewalPrice // Already in dollars
+    const priceInCents = planData.rawRenewalPrice // Whop returns cents
+    const priceInDollars = priceInCents / 100 // Convert to dollars
     const billingPeriod = planData.billingPeriod || 30 // Default to 30 days
 
     // Normalize to monthly (30 days)
-    const monthlyRevenue = (price / billingPeriod) * 30
+    const monthlyRevenue = (priceInDollars / billingPeriod) * 30
 
     // Categorize by billing period
     if (billingPeriod === 30) {

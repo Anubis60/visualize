@@ -1,7 +1,7 @@
 export interface Plan {
   id: string
-  rawRenewalPrice: number  // GraphQL API uses camelCase
-  rawInitialPrice: number
+  rawRenewalPrice: number  // Price in cents (e.g., 2900 = $29.00)
+  rawInitialPrice: number  // Price in cents (e.g., 2900 = $29.00)
   billingPeriod: number | null // days, or null for one_time
   planType: 'renewal' | 'one_time'
   baseCurrency: string

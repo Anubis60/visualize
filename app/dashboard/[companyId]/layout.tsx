@@ -21,12 +21,31 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function checkSubscription() {
+    async function initializeDashboard() {
       try {
         // Get userId from Whop's window context (provided by Whop SDK)
         const whopContext = (window as typeof window & { __WHOP__?: { userId?: string } }).__WHOP__
         const whopUserId = whopContext?.userId || companyId
         setUserId(whopUserId)
+
+        // Register webhook for this company (if not already registered)
+        // This happens in parallel with subscription check
+        fetch('/api/webhooks/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyId }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              console.log('[Dashboard] Webhook registration:', data.alreadyRegistered ? 'Already exists' : 'Created + Backfill started');
+            } else {
+              console.error('[Dashboard] Webhook registration failed:', data.error);
+            }
+          })
+          .catch((error) => {
+            console.error('[Dashboard] Webhook registration error:', error);
+          });
 
         // Check subscription status by companyId
         const subscriptionResponse = await fetch(`/api/subscription/check?companyId=${companyId}`)
@@ -45,7 +64,7 @@ export default function DashboardLayout({
       }
     }
 
-    checkSubscription()
+    initializeDashboard()
   }, [companyId])
 
   if (loading) {

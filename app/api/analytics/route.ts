@@ -118,8 +118,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Store in MongoDB for chart pages to reference
+    // NOTE: This is a legacy fallback. Normal flow is webhook → snapshot
     try {
-      await metricsRepository.upsertDailySnapshot(companyId, {
+      await metricsRepository.insertSnapshot(companyId, {
         mrr: {
           total: mrrData.total,
           breakdown: mrrData.breakdown,
