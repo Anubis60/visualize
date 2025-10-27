@@ -2,9 +2,10 @@ import { Membership, MRRData } from '@/lib/types/analytics'
 
 /**
  * Normalizes a plan price to monthly recurring revenue
+ * NOTE: Whop SDK v0.0.2 returns prices in dollars (not cents)
  */
 export function normalizePriceToMonthly(price: number, billingPeriod: string): number {
-  const priceInDollars = price / 100 // Whop uses cents
+  const priceInDollars = price // SDK already returns dollars
 
   switch (billingPeriod) {
     case 'month':
@@ -56,12 +57,11 @@ export function calculateMRR(memberships: Membership[]): MRRData {
     }
 
     // Calculate monthly recurring revenue
-    const priceInCents = planData.rawRenewalPrice // Whop returns cents
-    const priceInDollars = priceInCents / 100 // Convert to dollars
+    // NOTE: Whop SDK v0.0.2 returns prices in dollars (not cents)
+    const priceInDollars = planData.rawRenewalPrice
     const billingPeriod = planData.billingPeriod || 30 // Default to 30 days
 
     console.log(`[MRR Debug] Membership ${membership.id}:`, {
-      priceInCents,
       priceInDollars,
       billingPeriod,
       planId: planData.id

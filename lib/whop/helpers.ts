@@ -73,7 +73,17 @@ export async function getAllPayments(companyId: string): Promise<Payment[]> {
       }
 
       try {
+        // Debug: Log raw payment amounts (first 3 only to avoid spam)
+        if (count <= 3) {
+          console.log(`[Whop SDK] Raw payment ${payment.id}:`, {
+            total: payment.total,
+            subtotal: payment.subtotal,
+            status: payment.status
+          });
+        }
+
         // Map SDK snake_case response to our camelCase Payment interface
+        // NOTE: Whop SDK v0.0.2 returns payment amounts in dollars
         payments.push({
           id: payment.id,
           status: (payment.status || 'pending') as 'paid' | 'failed' | 'pending',
@@ -134,8 +144,8 @@ export async function getAllPlans(companyId: string) {
         // Map SDK response to our Plan interface
         plans.push({
           id: plan.id,
-          rawRenewalPrice: plan.renewal_price, // Whop returns prices in cents
-          rawInitialPrice: plan.initial_price, // Whop returns prices in cents
+          rawRenewalPrice: plan.renewal_price, // Whop SDK v0.0.2 returns prices in dollars
+          rawInitialPrice: plan.initial_price, // Whop SDK v0.0.2 returns prices in dollars
           billingPeriod: plan.billing_period,
           planType: (plan.plan_type === 'one_time' ? 'one_time' : 'renewal') as 'one_time' | 'renewal',
           baseCurrency: String(plan.currency),

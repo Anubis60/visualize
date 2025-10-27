@@ -1,7 +1,7 @@
 export interface Plan {
   id: string
-  rawRenewalPrice: number  // Price in cents (e.g., 2900 = $29.00)
-  rawInitialPrice: number  // Price in cents (e.g., 2900 = $29.00)
+  rawRenewalPrice: number  // Price in dollars from Whop SDK v0.0.2 (e.g., 29.00 = $29.00)
+  rawInitialPrice: number  // Price in dollars from Whop SDK v0.0.2 (e.g., 29.00 = $29.00)
   billingPeriod: number | null // days, or null for one_time
   planType: 'renewal' | 'one_time'
   baseCurrency: string
