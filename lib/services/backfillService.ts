@@ -5,7 +5,7 @@ import { calculateTrialMetrics } from '@/lib/analytics/trials'
 import { calculateCustomerLifetimeValue } from '@/lib/analytics/lifetime'
 import { calculateCashFlow, calculatePaymentMetrics, calculateRefundMetrics } from '@/lib/analytics/transactions'
 import { Membership, Plan } from '@/lib/types/analytics'
-import { metricsRepository } from '@/lib/db/repositories/MetricsRepository'
+import { historicalMetricsRepository } from '@/lib/db/repositories/HistoricalMetricsRepository'
 import { companyRepository } from '@/lib/db/repositories/CompanyRepository'
 
 /**
@@ -14,6 +14,15 @@ import { companyRepository } from '@/lib/db/repositories/CompanyRepository'
  */
 export async function backfillCompanyHistory(companyId: string): Promise<void> {
   try {
+    // 0. Check if backfill already exists
+    const hasData = await historicalMetricsRepository.hasHistoricalData(companyId)
+    if (hasData) {
+      console.log(`[Backfill] Company ${companyId} already has historical data, skipping backfill`)
+      return
+    }
+
+    console.log(`[Backfill] Starting backfill for company ${companyId}`)
+
     // 1. Fetch ALL memberships using SDK helpers
     const allMemberships = await getAllMemberships(companyId)
 
@@ -107,8 +116,8 @@ export async function backfillCompanyHistory(companyId: string): Promise<void> {
         return createdAt > thirtyDaysBeforeSnapshot && m.status === 'active'
       }).length
 
-      // Store snapshot with the specific date (backfill uses midnight UTC normalization)
-      await metricsRepository.upsertDailySnapshotForBackfill(companyId, {
+      // Store snapshot in historical collection
+      await historicalMetricsRepository.upsertHistoricalSnapshot(companyId, {
         mrr: {
           total: mrrData.total,
           breakdown: mrrData.breakdown,

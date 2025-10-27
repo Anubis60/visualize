@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backfillCompanyHistory } from '@/lib/services/backfillService';
+import { historicalMetricsRepository } from '@/lib/db/repositories/HistoricalMetricsRepository';
 
 /**
  * Backfill Historical Data Endpoint
  * Triggers backfill of 365 days of historical snapshots for a company
+ * Checks database first to avoid duplicate backfills
  * POST /api/backfill?company_id=xxx
  */
 export async function POST(request: NextRequest) {
@@ -18,6 +20,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(`[Backfill API] Checking backfill status for company: ${companyId}`);
+
+    // Check if backfill already exists in database
+    const hasData = await historicalMetricsRepository.hasHistoricalData(companyId);
+
+    if (hasData) {
+      console.log(`[Backfill API] Company ${companyId} already has historical data`);
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        companyId,
+        message: 'Historical data already exists',
+      });
+    }
+
     console.log(`[Backfill API] Starting backfill for company: ${companyId}`);
 
     // Trigger backfill (this will run and block until complete)
@@ -27,6 +44,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      skipped: false,
       companyId,
       message: 'Historical data backfill completed successfully',
     });
