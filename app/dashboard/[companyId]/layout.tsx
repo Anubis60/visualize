@@ -23,6 +23,8 @@ export default function DashboardLayout({
   useEffect(() => {
     async function initializeDashboard() {
       try {
+        /* TODO: Uncomment when Whop SDK is updated with webhook methods
+
         // Register webhook for this company (if not already registered)
         fetch('/api/webhooks/register', {
           method: 'POST',
@@ -40,6 +42,8 @@ export default function DashboardLayout({
           .catch((error) => {
             console.error('[Dashboard] Webhook registration error:', error);
           });
+
+        */
 
         /* TODO: Uncomment when ready for subscription gating
 
