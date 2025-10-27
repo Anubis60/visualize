@@ -123,6 +123,14 @@ export async function getAllPlans(companyId: string) {
       count++;
 
       try {
+        // Debug: Log raw SDK response for this plan
+        console.log(`[Whop SDK] Raw plan ${plan.id}:`, {
+          id: plan.id,
+          renewal_price: plan.renewal_price,
+          initial_price: plan.initial_price,
+          billing_period: plan.billing_period,
+        });
+
         // Map SDK response to our Plan interface
         plans.push({
           id: plan.id,
