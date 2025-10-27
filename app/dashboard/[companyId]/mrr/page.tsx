@@ -31,7 +31,8 @@ export default function MRRPage({ params }: { params: Promise<{ companyId: strin
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          // Use historical data from API response
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {

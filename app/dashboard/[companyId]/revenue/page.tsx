@@ -27,7 +27,7 @@ export default function RevenuePage({ params }: { params: Promise<{ companyId: s
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {

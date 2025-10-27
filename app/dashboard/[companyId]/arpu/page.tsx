@@ -27,7 +27,7 @@ export default function ARPUPage({ params }: { params: Promise<{ companyId: stri
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {

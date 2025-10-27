@@ -31,7 +31,7 @@ export default function SubscribersPage({ params }: { params: Promise<{ companyI
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {

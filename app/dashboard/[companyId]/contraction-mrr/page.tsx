@@ -26,7 +26,7 @@ export default function ContractionMRRPage({ params }: { params: Promise<{ compa
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([])
+          setHistoricalData(currentData.historical || [])
           setLoading(false)
         })
         .catch(() => {

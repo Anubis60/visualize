@@ -27,7 +27,7 @@ export default function ActiveCustomersPage({ params }: { params: Promise<{ comp
         .then(res => res.json())
         .then((currentData) => {
           setAnalytics(currentData as AnalyticsData)
-          setHistoricalData([]) // No historical data for now
+          setHistoricalData(currentData.historical || []) // No historical data for now
           setLoading(false)
         })
         .catch(() => {
